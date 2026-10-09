@@ -91,7 +91,9 @@
       <b>ทุกใบ</b> เริ่มเก็บค่า DEM. วันที่ ·
       <b>DG</b> (<code>UN</code> / <code>CLASS</code>) เพิ่ม SPECIAL CONTAINER ·
       <b>ตู้เย็น</b> (<code>20RF</code> / <code>40RH</code> / <code>TEMP</code>) เพิ่มวันเริ่มเก็บค่าไฟ ·
-      <b>ISO TANK + DG</b> เติมแค่ SPECIAL CONTAINER<br>
+      <b>ISO TANK + DG</b> เติมแค่ SPECIAL CONTAINER ·
+      <b>CFS/CFS, CY/CFS</b> ไม่เติม DEM ·
+      หน้า <b>ATTACHED RIDER</b> ไม่เติม<br>
       วันที่ DEM = ช่อง DEM. · วันที่ค่าไฟ = ช่อง REC. (ถ้าว่างใช้ ATA + 3 วัน) · ลากไฟล์ทั้งสองมาวางพร้อมกันได้<br>
       ไฟล์ถูกประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการอัปโหลดไปที่ใด
     </p>
@@ -103,7 +105,7 @@
     <div class="chips" id="chips"></div>
     <div class="toolbar">
       <input type="search" id="search" placeholder="ค้นหา B/L No. / วันที่">
-      <button id="download">ดาวน์โหลด DO.pdf</button>
+      <button id="download">ดาวน์โหลด DO-DEM.pdf</button>
     </div>
     <div class="tbl"><table>
       <thead><tr><th>หน้า</th><th>B/L No.</th><th>แบบ</th><th>ค่าไฟ</th><th>DEM.</th><th>ข้อความที่เติม</th></tr></thead>
@@ -116,7 +118,7 @@
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-const OUTPUT_NAME = "DO.pdf";
+const OUTPUT_NAME = "DO-DEM.pdf";
 const REEFER_POWER_DAYS = 3;          // REC. blank in CHECK DEM -> ATA + 3 days
 const X = 46;                         // left edge of the notes, pt
 const SCALE = 6;                      // canvas px per pt (notes are embedded as images so Thai is shaped by the browser)
@@ -125,6 +127,7 @@ const RE_BL = /HASL\w+/;
 const RE_DG = /\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCLASS\s*:?\s*\d|\bCL\s*\d/;
 const RE_REEFER = /\b(20|40|45)R[FH]|\bTEMP\b/;
 const RE_TANK = /ISO\s*TANK|\b\d\dTK\b/;
+const RE_STATUS = /\b(CY|CFS)\s*\/\s*(CY|CFS)\b/;
 const KINDS = { "ทั่วไป": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ข้าม": "E0E0E0" };
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const SPECIAL = [[["SPECIAL CONTAINER", false]], [[".......DG..........OP..........FR", false]]];
@@ -200,12 +203,17 @@ async function fill(pdfBytes, xlsBytes, size) {
     const p = await src.getPage(n);
     const text = (await p.getTextContent()).items.map(i => i.str).join("\n");
     const bl = (text.match(RE_BL) || ["?"])[0];
+    if (/ATTACHED RIDER/.test(text)) { out.push({ page: n, bl, kind: "ข้าม", note: "ATTACHED RIDER" }); continue; }
     if ((await p.getAnnotations()).some(a => a.subtype === "FreeText")) {
       out.push({ page: n, bl, kind: "ข้าม", note: "มีข้อความอยู่แล้ว" }); continue;
     }
-    const row = rows[bl] || {}, dem = row.dem || null;
+    // house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
+    const key0 = bl in rows ? bl : /[A-Z]$/.test(bl) && bl.slice(0, -1) in rows ? bl.slice(0, -1) : null;
+    const row = rows[key0] || {}, dem = row.dem || null;
+    const st = text.match(RE_STATUS), cfs = !!st && st[2] === "CFS";   // CFS/CFS, CY/CFS -> no DEM line
+    const status = st ? st[0].replace(/\s/g, "") : "";
     const dg = RE_DG.test(text), reefer = RE_REEFER.test(text), tank = RE_TANK.test(text);
-    const demLine = dem ? [[["เริ่มเก็บค่า DEM. วันที่.  ", false], [fmt(dem) + " ", true]]] : null;
+    const demLine = dem && !cfs ? [[["เริ่มเก็บค่า DEM. วันที่.  ", false], [fmt(dem) + " ", true]]] : null;
     let kind, parts, rec = null;
     if (tank && dg) { kind = "ISO TANK+DG"; parts = [[700, SPECIAL]]; }
     else if (reefer) {
@@ -224,8 +232,8 @@ async function fill(pdfBytes, xlsBytes, size) {
       const im = cache.get(key);
       page.drawImage(im.ref, { x: X, y: H - y - im.h, width: im.w, height: im.h });
     }
-    const missing = kind !== "ISO TANK+DG" && !dem;
-    out.push({ page: n, bl, kind, rec, dem, missing, inSheet: bl in rows,
+    const missing = kind !== "ISO TANK+DG" && !cfs && !dem;
+    out.push({ page: n, bl, kind, rec, dem, missing, cfs, status, inSheet: key0 !== null,
                note: parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") });
   }
   return { rows: out, ata, out: await doc.save(), font: fam.css.replace(/"/g, "") };
@@ -249,7 +257,7 @@ function render() {
   $("tbody").innerHTML = rows.filter(x => !hidden.has(x.kind) && (!q || (x.bl + " " + x.note).toLowerCase().includes(q))).map(x =>
     `<tr data-p="${x.page}"><td>${x.page}</td><td class="b">${escapeHtml(x.bl)}</td>` +
     `<td class="kind" style="background:#${KINDS[x.kind]}">${x.kind}</td><td>${x.rec ? fmt(x.rec) : ""}</td>` +
-    (x.missing ? `<td class="bad">${x.inSheet ? "CHECK" : "ไม่พบ B/L"}</td>` : `<td class="b">${x.dem && x.kind !== "ISO TANK+DG" ? fmt(x.dem) : ""}</td>`) +
+    (x.missing ? `<td class="bad">${x.inSheet ? "CHECK" : "ไม่พบ B/L"}</td>` : x.cfs ? `<td style="color:var(--muted)">${x.status} ไม่เติม</td>` : `<td class="b">${x.dem && x.kind !== "ISO TANK+DG" ? fmt(x.dem) : ""}</td>`) +
     `<td class="l">${escapeHtml(x.note)}</td></tr>`).join("");
   $("result").classList.remove("hidden");
 }

@@ -1,6 +1,6 @@
 """Fill DEM / reefer power / SPECIAL CONTAINER notes into input/DO*.pdf using CHECK DEM.xlsx (input/ or output/).
 Usage: python fill_do.py [job folder]
-Pages that already carry a typed note (annotation) are left untouched. Output: output/DO.pdf"""
+Pages that already carry a typed note (annotation) are left untouched. Output: output/DO-DEM.pdf"""
 import glob, os, re, struct, sys, datetime
 import pymupdf, openpyxl
 
@@ -13,7 +13,7 @@ def find(pattern, *dirs):
     raise SystemExit(f"ไม่พบไฟล์ {pattern} ใน {', '.join(dirs)}")
 
 SRC, XLS = find("DO*.pdf", "input"), find("CHECK DEM*.xlsx", "input", "output")
-OUT = os.path.join(BASE, "output", "DO.pdf")
+OUT = os.path.join(BASE, "output", "DO-DEM.pdf")
 
 def ttc_faces(data):
     """Split a .ttc into standalone .ttf byte strings (no fontTools needed)."""
@@ -54,15 +54,20 @@ report = []
 for page in doc:
     text = page.get_text()
     bl = re.search(r"HASL\w+", text).group()
+    if "ATTACHED RIDER" in text:
+        report.append((page.number + 1, bl, "ATTACHED RIDER (ข้าม)")); continue
     if page.first_annot:
         report.append((page.number + 1, bl, "มีข้อความอยู่แล้ว (ข้าม)")); continue
-    row = rows.get(bl)
+    # house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
+    row = rows.get(bl) or (rows.get(bl[:-1]) if bl[-1].isalpha() else None)
+    status = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
+    cfs = bool(status and status.group(2) == "CFS")   # CFS/CFS, CY/CFS -> no DEM line
     rec0, dem = row if row else (None, None)
     dem_s = fmt(dem) if isinstance(dem, datetime.datetime) else None
     dg = bool(re.search(r"\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCLASS\s*:?\s*\d|\bCL\s*\d", text))
     reefer = bool(re.search(r"\b(20|40|45)R[FH]|\bTEMP\b", text))
     tank = bool(re.search(r"ISO\s*TANK|\b\d\dTK\b", text))
-    dem_p = f"<p>เริ่มเก็บค่า DEM. วันที่.&nbsp; <u>{dem_s}&nbsp;</u></p>" if dem_s else ""
+    dem_p = "" if cfs else f"<p>เริ่มเก็บค่า DEM. วันที่.&nbsp; <u>{dem_s}&nbsp;</u></p>" if dem_s else ""
     if tank and dg:
         kind, parts = "ISO TANK+DG", [(700, SPECIAL)]
     elif reefer:
@@ -74,7 +79,9 @@ for page in doc:
         kind, parts = "DG", [(690, SPECIAL), (760, dem_p)]
     else:
         kind, parts = "ทั่วไป", [(728, dem_p)]
-    if not dem_s and not (tank and dg):
+    if cfs:
+        kind += " (" + status.group(0).replace(" ", "") + " ไม่เติม DEM)"
+    elif not dem_s and not (tank and dg):
         kind += "  ** ไม่มีวันที่ DEM ใน CHECK DEM **"
     for y, html in parts:
         if html:
