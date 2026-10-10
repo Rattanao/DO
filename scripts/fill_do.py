@@ -14,6 +14,7 @@ def find(pattern, *dirs):
 
 SRC, XLS = find("DO*.pdf", "input"), find("CHECK DEM*.xlsx", "input", "output")
 OUT = os.path.join(BASE, "output", "DO-DEM.pdf")
+OUT_PRINT = os.path.join(BASE, "output", "DO-DEM-PRINT.pdf")
 
 def ttc_faces(data):
     """Split a .ttc into standalone .ttf byte strings (no fontTools needed)."""
@@ -49,13 +50,29 @@ CSS = ("@font-face{font-family:ang;src:url(angsab.ttf);} "
        "p{font-family:ang;font-size:15.5pt;margin:0;line-height:1.05;} u{text-decoration:underline;}")
 SPECIAL = "<p>SPECIAL CONTAINER</p><p>.......DG..........OP..........FR</p>"
 
+STAMP = pymupdf.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "stamp.pdf"))
+
+def stamp_rect(page):
+    """Centred under the rider's container list; page centre if the list runs too long."""
+    w, h = STAMP[0].rect.width, STAMP[0].rect.height
+    y = max(b[3] for b in page.get_text("blocks")) + 40
+    if y + h > page.rect.height - 40:
+        y = (page.rect.height - h) / 2
+    x = (page.rect.width - w) / 2
+    return pymupdf.Rect(x, y, x + w, y + h)
+
 doc = pymupdf.open(SRC)
-report = []
+report, pages = [], []          # pages: (rider, cfs, master B/L) per page, for the print x2 file
 for page in doc:
     text = page.get_text()
     bl = re.search(r"HASL\w+", text).group()
+    master = bl[:-1] if bl[-1].isalpha() else bl
     if "ATTACHED RIDER" in text:
-        report.append((page.number + 1, bl, "ATTACHED RIDER (ข้าม)")); continue
+        page.show_pdf_page(stamp_rect(page), STAMP, 0)
+        pages.append((True, pages[-1][1] if pages else False, master))
+        report.append((page.number + 1, bl, "ATTACHED RIDER | ประทับตรา CERTIFIED TRUE & CORRECT COPY")); continue
+    st = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
+    pages.append((False, bool(st and st.group(2) == "CFS"), master))
     if page.first_annot:
         report.append((page.number + 1, bl, "มีข้อความอยู่แล้ว (ข้าม)")); continue
     # house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
@@ -88,6 +105,31 @@ for page in doc:
             page.insert_htmlbox(pymupdf.Rect(45, y, 300, y + 45), html, css=CSS, archive=arch, scale_low=1)
     report.append((page.number + 1, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h)))
 
+def print_order(pages):
+    """x2 for printing. A B/L = its page plus any ATTACHED RIDER pages after it.
+    CY: each B/L twice in a row (1,1,2,2). CFS: each master B/L's set of house B/Ls
+    twice as separate sets (A,B,C,A,B,C)."""
+    bls = []
+    for i, (rider, cfs, master) in enumerate(pages):
+        if rider and bls: bls[-1][2].append(i)
+        else: bls.append((cfs, master, [i]))
+    order, k = [], 0
+    while k < len(bls):
+        cfs, master, idx = bls[k]
+        if not cfs:
+            order += idx + idx; k += 1; continue
+        group = []
+        while k < len(bls) and bls[k][0] and bls[k][1] == master:
+            group += bls[k][2]; k += 1
+        order += group + group
+    return order
+
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 doc.save(OUT, garbage=4, deflate=True)
+done = pymupdf.open(OUT)
+prn = pymupdf.open()
+for i in print_order(pages):
+    prn.insert_pdf(done, from_page=i, to_page=i)
+prn.save(OUT_PRINT, garbage=4, deflate=True)
 for r in report: print(*r, sep=" | ")
+print(f"\nไฟล์ปริ้น x2: {os.path.basename(OUT_PRINT)} ({len(prn)} หน้า)")

@@ -98,7 +98,8 @@
       <b>ตู้เย็น</b> (<code>20RF</code> / <code>40RH</code> / <code>TEMP</code>) เพิ่มวันเริ่มเก็บค่าไฟ ·
       <b>ISO TANK + DG</b> เติมแค่ SPECIAL CONTAINER ·
       <b>CFS/CFS, CY/CFS</b> ไม่เติม DEM ·
-      หน้า <b>ATTACHED RIDER</b> ไม่เติม<br>
+      หน้า <b>ATTACHED RIDER</b> ประทับตรา CERTIFIED TRUE &amp; CORRECT COPY<br>
+      <b>ปริ้น x2</b>: CY ซ้อนกันทีละ B/L (1,1,2,2) · CFS แยกเป็น 2 ชุดต่อ B/L หลัก (A,B,C,A,B,C)<br>
       วันที่ DEM = ช่อง DEM. · วันที่ค่าไฟ = ช่อง REC. (ถ้าว่างใช้ ATA + 3 วัน) · ลากไฟล์ทั้งสองมาวางพร้อมกันได้<br>
       ไฟล์ถูกประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการอัปโหลดไปที่ใด
     </p>
@@ -111,6 +112,7 @@
     <div class="toolbar">
       <input type="search" id="search" placeholder="ค้นหา B/L No. / วันที่">
       <button id="download">ดาวน์โหลด DO-DEM.pdf</button>
+      <button id="print" class="ghost">ปริ้น x2</button>
     </div>
     <div class="tbl"><table>
       <thead><tr><th>หน้า</th><th>B/L No.</th><th>แบบ</th><th>ค่าไฟ</th><th>DEM.</th><th>ข้อความที่เติม</th></tr></thead>
@@ -133,7 +135,8 @@ const RE_DG = /\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCLASS\s*:?\s*\d|\bCL\s*\d/;
 const RE_REEFER = /\b(20|40|45)R[FH]|\bTEMP\b/;
 const RE_TANK = /ISO\s*TANK|\b\d\dTK\b/;
 const RE_STATUS = /\b(CY|CFS)\s*\/\s*(CY|CFS)\b/;
-const KINDS = { "ทั่วไป": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ข้าม": "E0E0E0" };
+const KINDS = { "ทั่วไป": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ATTACHED RIDER": "BBDEFB", "ข้าม": "E0E0E0" };
+const STAMP_URL = "stamp.pdf";        // CERTIFIED TRUE & CORRECT COPY stamp, built by scripts/make_stamp.py
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const SPECIAL = [[["SPECIAL CONTAINER", false]], [[".......DG..........OP..........FR", false]]];
 const $ = id => document.getElementById(id);
@@ -204,19 +207,32 @@ async function fill(pdfBytes, xlsBytes, size) {
   const src = await pdfjsLib.getDocument({ data: pdfBytes.slice() }).promise;
   const doc = await PDFLib.PDFDocument.load(pdfBytes);
   const cache = new Map(), out = [];
+  let stamp = null;
   for (let n = 1; n <= src.numPages; n++) {
     const p = await src.getPage(n);
-    const text = (await p.getTextContent()).items.map(i => i.str).join("\n");
+    const items = (await p.getTextContent()).items.filter(i => i.str.trim());
+    const text = items.map(i => i.str).join("\n");
     const bl = (text.match(RE_BL) || ["?"])[0];
-    if (/ATTACHED RIDER/.test(text)) { out.push({ page: n, bl, kind: "ข้าม", note: "ATTACHED RIDER" }); continue; }
-    if ((await p.getAnnotations()).some(a => a.subtype === "FreeText")) {
-      out.push({ page: n, bl, kind: "ข้าม", note: "มีข้อความอยู่แล้ว" }); continue;
+    const master = /[A-Z]$/.test(bl) ? bl.slice(0, -1) : bl;
+    if (/ATTACHED RIDER/.test(text)) {
+      // stamp centred under the container list; page centre if the list runs too long
+      if (!stamp) stamp = await doc.embedPdf(await (await fetch(STAMP_URL)).arrayBuffer());
+      const page = doc.getPage(n - 1), W = page.getWidth(), H = page.getHeight();
+      const sw = stamp[0].width, sh = stamp[0].height;
+      let top = H - Math.min(...items.map(i => i.transform[5])) + 3 + 40;
+      if (top + sh > H - 40) top = (H - sh) / 2;
+      page.drawPage(stamp[0], { x: (W - sw) / 2, y: H - top - sh, width: sw, height: sh });
+      const prev = out[out.length - 1];
+      out.push({ page: n, bl, master, rider: true, cfs: prev ? prev.cfs : false, kind: "ATTACHED RIDER", note: "ประทับตรา CERTIFIED TRUE & CORRECT COPY" }); continue;
     }
-    // house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
-    const key0 = bl in rows ? bl : /[A-Z]$/.test(bl) && bl.slice(0, -1) in rows ? bl.slice(0, -1) : null;
-    const row = rows[key0] || {}, dem = row.dem || null;
     const st = text.match(RE_STATUS), cfs = !!st && st[2] === "CFS";   // CFS/CFS, CY/CFS -> no DEM line
     const status = st ? st[0].replace(/\s/g, "") : "";
+    if ((await p.getAnnotations()).some(a => a.subtype === "FreeText")) {
+      out.push({ page: n, bl, master, cfs, kind: "ข้าม", note: "มีข้อความอยู่แล้ว" }); continue;
+    }
+    // house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
+    const key0 = bl in rows ? bl : master in rows ? master : null;
+    const row = rows[key0] || {}, dem = row.dem || null;
     const dg = RE_DG.test(text), reefer = RE_REEFER.test(text), tank = RE_TANK.test(text);
     const demLine = dem && !cfs ? [[["เริ่มเก็บค่า DEM. วันที่.  ", false], [fmt(dem) + " ", true]]] : null;
     let kind, parts, rec = null;
@@ -238,7 +254,7 @@ async function fill(pdfBytes, xlsBytes, size) {
       page.drawImage(im.ref, { x: X, y: H - y - im.h, width: im.w, height: im.h });
     }
     const missing = kind !== "ISO TANK+DG" && !cfs && !dem;
-    out.push({ page: n, bl, kind, rec, dem, missing, cfs, status, inSheet: key0 !== null,
+    out.push({ page: n, bl, master, kind, rec, dem, missing, cfs, status, inSheet: key0 !== null,
                note: parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") });
   }
   return { rows: out, ata, out: await doc.save(), font: fam.css.replace(/"/g, "") };
@@ -289,6 +305,41 @@ async function run() {
   $("run").textContent = "ประมวลผล"; update();
 }
 
+// x2 for printing. A B/L = its page plus any ATTACHED RIDER pages after it.
+// CY: each B/L twice in a row (1,1,2,2). CFS: each master B/L's set of house B/Ls twice as separate sets (A,B,C,A,B,C).
+function printOrder(rows) {
+  const bls = [];
+  rows.forEach((r, i) => r.rider && bls.length ? bls[bls.length - 1].idx.push(i) : bls.push({ cfs: r.cfs, master: r.master, idx: [i] }));
+  const order = [];
+  for (let k = 0; k < bls.length;) {
+    const { cfs, master, idx } = bls[k];
+    if (!cfs) { order.push(...idx, ...idx); k++; continue; }
+    const set = [];
+    while (k < bls.length && bls[k].cfs && bls[k].master === master) set.push(...bls[k++].idx);
+    order.push(...set, ...set);
+  }
+  return order;
+}
+
+async function printX2() {
+  $("print").disabled = true;
+  try {
+    const src = await PDFLib.PDFDocument.load(report.out), prn = await PDFLib.PDFDocument.create();
+    for (const pg of await prn.copyPages(src, printOrder(report.rows))) prn.addPage(pg);
+    const url = URL.createObjectURL(new Blob([await prn.save()], { type: "application/pdf" }));
+    let f = $("printFrame");
+    if (!f) { f = document.createElement("iframe"); f.id = "printFrame"; f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0"; document.body.appendChild(f); }
+    f.onload = () => {
+      try { f.contentWindow.focus(); f.contentWindow.print(); }
+      catch { window.open(url); }              // browser blocks printing from a frame: open the PDF to print from its viewer
+    };
+    f.src = url;
+  } catch (err) {
+    $("msg").textContent = "สร้างไฟล์ปริ้นไม่สำเร็จ: " + err.message;
+  }
+  $("print").disabled = false;
+}
+
 function download() {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([report.out], { type: "application/pdf" }));
@@ -330,6 +381,7 @@ $("clear").onclick = clearAll;
 $("size").onchange = () => { if (pdfFile && xlsFile) run(); };
 $("search").oninput = render;
 $("download").onclick = download;
+$("print").onclick = printX2;
 $("chips").onclick = e => {
   const k = e.target.closest(".chip")?.dataset.k; if (!k) return;
   hidden.has(k) ? hidden.delete(k) : hidden.add(k); render();
