@@ -64,21 +64,21 @@ def stamp_rect(page):
 doc = pymupdf.open(SRC)
 report, pages = [], []          # pages: (rider, cfs, master B/L) per page, for the print x2 file
 for page in doc:
-    text = page.get_text()
+    # some re-saved PDFs write their spaces as control characters ("==\x03ATTACHED\x03RIDER\x03==")
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", " ", page.get_text())
     bl = re.search(r"HASL\w+", text).group()
     master = bl[:-1] if bl[-1].isalpha() else bl
-    if "ATTACHED RIDER" in text:
+    if re.search(r"ATTACHED\s*RIDER", text):
         page.show_pdf_page(stamp_rect(page), STAMP, 0)
         pages.append((True, pages[-1][1] if pages else False, master))
         report.append((page.number + 1, bl, "ATTACHED RIDER | ประทับตรา CERTIFIED TRUE & CORRECT COPY")); continue
-    st = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
-    pages.append((False, bool(st and st.group(2) == "CFS"), master))
+    status = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
+    cfs = bool(status and status.group(2) == "CFS")   # CFS/CFS, CY/CFS -> no DEM line
+    pages.append((False, cfs, master))
     if page.first_annot:
         report.append((page.number + 1, bl, "มีข้อความอยู่แล้ว (ข้าม)")); continue
     # house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
     row = rows.get(bl) or (rows.get(bl[:-1]) if bl[-1].isalpha() else None)
-    status = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
-    cfs = bool(status and status.group(2) == "CFS")   # CFS/CFS, CY/CFS -> no DEM line
     rec0, dem = row if row else (None, None)
     dem_s = fmt(dem) if isinstance(dem, datetime.datetime) else None
     dg = bool(re.search(r"\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCLASS\s*:?\s*\d|\bCL\s*\d", text))

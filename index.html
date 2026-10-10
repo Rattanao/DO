@@ -236,11 +236,13 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
   let stamp = null;
   for (let n = 1; n <= srcPages.length; n++) {
     const p = await srcPages[n - 1];
-    const items = (await p.getTextContent()).items.filter(i => i.str.trim());
-    const text = items.map(i => i.str).join("\n");
+    // some re-saved PDFs write their spaces as control characters ("==\x03ATTACHED\x03RIDER\x03==")
+    const clean = s => s.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, " ");
+    const items = (await p.getTextContent()).items.filter(i => clean(i.str).trim());
+    const text = items.map(i => clean(i.str)).join("\n");
     const bl = (text.match(RE_BL) || ["?"])[0];
     const master = /[A-Z]$/.test(bl) ? bl.slice(0, -1) : bl;
-    if (/ATTACHED RIDER/.test(text)) {
+    if (/ATTACHED\s*RIDER/.test(text)) {
       // stamp centred under the container list; page centre if the list runs too long
       if (!stamp) stamp = await doc.embedPdf(await (await fetch(STAMP_URL)).arrayBuffer());
       const page = doc.getPage(n - 1), W = page.getWidth(), H = page.getHeight();
