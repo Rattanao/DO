@@ -1,6 +1,6 @@
 """Build stamp.pdf: the blue "CERTIFIED TRUE & CORRECT COPY" stamp with the round
 CORRECTION APPROVED seal, as vector graphics. fill_do.py and index.html overlay it on
-ATTACHED RIDER pages. Text size 14.5pt = "CARGO DELIVERY ORDER" on the D/O header.
+ATTACHED RIDER pages. CERTIFIED line 12.5pt (CARGO on the D/O header is 14.5pt); seal unchanged.
 Usage: python make_stamp.py  (writes ../stamp.pdf)"""
 import math, os
 import pymupdf
@@ -8,7 +8,7 @@ import pymupdf
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "stamp.pdf")
 BLUE = (0.10, 0.25, 0.80)
 OPACITY = 0.85
-SIZE = 14.5                      # same as CARGO on the D/O header
+SIZE = 12.5                      # a little smaller than CARGO (14.5pt) on the D/O header
 LINE = "CERTIFIED TRUE & CORRECT COPY"
 R = 38                           # seal radius, pt
 GAP = 14

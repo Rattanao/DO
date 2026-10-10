@@ -114,8 +114,9 @@
       <b>CFS/CFS, CY/CFS</b> ไม่เติม DEM ·
       หน้า <b>ATTACHED RIDER</b> ประทับตรา CERTIFIED TRUE &amp; CORRECT COPY<br>
       <b>ปริ้น x2</b>: CY ซ้อนกันทีละ B/L (1,1,2,2) · CFS แยกเป็น 2 ชุดต่อ B/L หลัก (A,B,C,A,B,C)<br>
-      <b>วันที่</b>: ใส่ CHECK DEM หรือเติมเองที่ช่อง DEM. / ค่าไฟ ด้านบน (ใช้กับทุก B/L ที่ CHECK DEM ไม่มีวันที่) ·
-      แก้ทีละ B/L ได้ที่ช่องวันที่ในตาราง · ค่าไฟที่ไม่มีวันที่เลยใช้ ATA + 3 วัน<br>
+      <b>วันที่</b>: ใส่ CHECK DEM หรือเติมเองที่ช่อง DEM. / ค่าไฟ (เติมอย่างใดอย่างหนึ่งหรือทั้งสองอย่าง) แล้วกด <b>ประมวลผล</b>
+      (ใช้กับทุก B/L ที่ CHECK DEM ไม่มีวันที่) · แก้ทีละ B/L ได้ที่ช่องวันที่ในตาราง แล้วกด <b>ประมวลผล</b> ·
+      ค่าไฟที่ไม่มีวันที่เลยใช้ ATA + 3 วัน<br>
       ไฟล์ถูกประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการอัปโหลดไปที่ใด
     </p>
     <div class="msg" id="msg"></div>
@@ -336,7 +337,7 @@ async function run(keep) {
                name: pdfFiles.map(f => f.name).join(", ") };
     if (keep !== true) { hidden.clear(); $("search").value = ""; }
     render();
-    await preview(Math.min(page, report.rows.length));
+    preview(Math.min(page, report.rows.length));   // not awaited: the button is usable again at once
   } catch (err) {
     $("msg").textContent = "ทำไม่สำเร็จ: " + err.message;
   }
@@ -417,15 +418,15 @@ for (const [drop, input] of [["dropPdf", "filePdf"], ["dropXls", "fileXls"]]) {
   d.ondragleave = () => d.classList.remove("over");
   d.ondrop = e => { e.preventDefault(); d.classList.remove("over"); take(e.dataTransfer.files); };
 }
-$("run").onclick = run;
 $("clear").onclick = clearAll;
-$("size").onchange = $("demAll").onchange = $("recAll").onchange = () => run(true);
+// dates (DEM, ค่าไฟ, either or both, and per-B/L dates in the table) apply when ประมวลผล is pressed
+$("size").onchange = () => run(true);
 $("tbody").onchange = e => {
   const el = e.target; if (!el.dataset.k) return;
   const p = +el.dataset.p;
   overrides[p] = { ...overrides[p], [el.dataset.k]: fromInput(el.value) };
-  run(true);
 };
+$("run").onclick = () => run(!!report);
 $("search").oninput = render;
 $("download").onclick = download;
 $("print").onclick = printX2;

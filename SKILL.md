@@ -25,8 +25,8 @@ heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
 4. ISO TANK with DG: only the SPECIAL CONTAINER block, no DEM. line.
 5. Status CFS/CFS or CY/CFS (the `xx/CFS` near the SAY line): no DEM. line.
 6. `== ATTACHED RIDER ==` pages (page 2 of a B/L): no notes; the blue stamp from `stamp.pdf`
-   (CERTIFIED TRUE & CORRECT COPY at 14.5pt = "CARGO" on the D/O header, plus the round
-   CORRECTION APPROVED seal) is placed centred under the container list. To change the stamp,
+   (CERTIFIED TRUE & CORRECT COPY at 12.5pt, a little smaller than "CARGO" (14.5pt) on the
+   D/O header, plus the round CORRECTION APPROVED seal at its own size) is placed centred under the container list. To change the stamp,
    edit and run `scripts/make_stamp.py`.
 7. House B/L (`...038A`, `...038B`) not in CHECK DEM: dates come from its master B/L (letter dropped).
 
