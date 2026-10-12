@@ -113,7 +113,7 @@
       <b>ตู้เย็น</b> (<code>20RF</code> / <code>40RH</code> / <code>TEMP</code>) เพิ่มวันเริ่มเก็บค่าไฟ ·
       <b>ISO TANK + DG</b> เติมแค่ SPECIAL CONTAINER ·
       <b>CFS/CFS, CY/CFS</b> ไม่เติม DEM ·
-      หน้า <b>ATTACHED RIDER</b> ประทับตรา CERTIFIED TRUE &amp; CORRECT COPY<br>
+      หน้า <b>ATTACHED RIDER</b> ไม่เติม<br>
       <b>ปริ้น x2</b>: CY ซ้อนกันทีละ B/L (1,1,2,2) · CFS แยกเป็น 2 ชุดต่อ B/L หลัก (A,B,C,A,B,C)<br>
       <b>วันที่</b>: ใส่ CHECK DEM หรือเติมเองที่ช่อง DEM. / ค่าไฟ (เติมอย่างใดอย่างหนึ่งหรือทั้งสองอย่าง) แล้วกด <b>ประมวลผล</b>
       (ใช้กับทุก B/L ที่ CHECK DEM ไม่มีวันที่) · แก้ทีละ B/L ได้ที่ช่องวันที่ในตาราง แล้วกด <b>ประมวลผล</b> ·
@@ -138,7 +138,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12f</footer>
+<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12g</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -154,11 +154,8 @@ const RE_REEFER = /\b(20|40|45)R[FH]|\bTEMP\b/;
 const RE_TANK = /ISO\s*TANK|\b\d\dTK\b/;
 const RE_STATUS = /\b(CY|CFS)\s*\/\s*(CY|CFS)\b/;
 const KINDS = { "ทั่วไป": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ATTACHED RIDER": "BBDEFB", "ข้าม": "E0E0E0" };
-const STAMP_URL = "stamp.pdf?v=2026-10-12c";        // CERTIFIED TRUE & CORRECT COPY stamp, built by scripts/make_stamp.py
-const SEAL_URL = "seal.pdf?v=2026-10-12c";           // round CORRECTION APPROVED seal alone, for "AS PER ATTACHED" D/O pages
-const COIN = 64.9;                    // seal.pdf box; its ring (76 of 80pt) = 2-baht coin, 21.75 mm
 const MARK = "DO-DEM-FILLED";         // invisible text on every page we fill (same as scripts/fill_do.py)
-const DONE = /DO-DEM-FILLED|CERTIFIED\s*TRUE\s*&\s*CORRECT\s*COPY|เริ่มเก็บค่า/;   // marker, or our stamp / note in older outputs
+const DONE = /DO-DEM-FILLED|CERTIFIED\s*TRUE\s*&\s*CORRECT\s*COPY|เริ่มเก็บค่า/;   // marker, or the old stamp / note in older outputs
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const SPECIAL = [[["SPECIAL CONTAINER", false]], [[".......DG..........OP..........FR", false]]];
 const $ = id => document.getElementById(id);
@@ -239,7 +236,6 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     for (let i = 1; i <= src.numPages; i++) srcPages.push(src.getPage(i));
   }
   const cache = new Map(), out = [];
-  let stamp = null, seal = null;
   for (let n = 1; n <= srcPages.length; n++) {
     const p = await srcPages[n - 1];
     // some re-saved PDFs write their spaces as control characters ("==\x03ATTACHED\x03RIDER\x03==")
@@ -249,49 +245,20 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const bl = (text.match(RE_BL) || ["?"])[0];
     const master = /[A-Z]$/.test(bl) ? bl.slice(0, -1) : bl;
     const rider = /ATTACHED\s*RIDER/.test(text), prevRow = out[out.length - 1];
-    if (DONE.test(text)) {                        // a DO-DEM output fed back in: never stamp or note twice
+    if (DONE.test(text)) {                        // a DO-DEM output fed back in: never note twice
       const st0 = text.match(RE_STATUS);
       out.push({ page: n, bl, master, rider, cfs: rider ? !!(prevRow && prevRow.cfs) : !!st0 && st0[2] === "CFS",
                  kind: "ข้าม", note: "เติมไว้แล้ว" }); continue;
     }
     doc.getPage(n - 1).drawText(MARK, { x: 1, y: 1, size: 1, opacity: 0 });   // invisible "already filled" marker
-    if (rider) {
-      // stamp centred under the container list; page centre if the list runs too long
-      if (!stamp) stamp = await doc.embedPdf(await (await fetch(STAMP_URL)).arrayBuffer());
-      const page = doc.getPage(n - 1), W = page.getWidth(), H = page.getHeight();
-      const sw = stamp[0].width, sh = stamp[0].height;
-      let top = H - Math.min(...items.map(i => i.transform[5])) + 3 + 40;
-      if (top + sh > H - 40) top = (H - sh) / 2;
-      page.drawPage(stamp[0], { x: (W - sw) / 2, y: H - top - sh, width: sw, height: sh });
+    if (rider) {                                // ATTACHED RIDER pages are left as they are
       const prev = out[out.length - 1];
-      out.push({ page: n, bl, master, rider: true, cfs: prev ? prev.cfs : false, kind: "ATTACHED RIDER", note: "ประทับตรา CERTIFIED TRUE & CORRECT COPY" }); continue;
+      out.push({ page: n, bl, master, rider: true, cfs: prev ? prev.cfs : false, kind: "ATTACHED RIDER", note: "ไม่เติม" }); continue;
     }
     const st = text.match(RE_STATUS), cfs = !!st && st[2] === "CFS";   // CFS/CFS, CY/CFS -> no DEM line
     const status = st ? st[0].replace(/\s/g, "") : "";
-    // "AS PER ATTACHED" D/O: coin-size seal 60pt right of the marks' left edge, 42pt below their last line
-    let sealed = "";
-    // pdf.js may give one item per word: rebuild text lines (same baseline, items left to right)
-    const lines = [];
-    for (const i of [...items].sort((a, b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4])) {
-      const y = i.transform[5], x = i.transform[4];
-      let l = lines.find(l => Math.abs(l.y - y) < 1.5 && x >= l.x1 - 1 && x - l.x1 < 15);
-      if (!l) lines.push(l = { y, x0: x, x1: x, str: "" });
-      l.str += clean(i.str); l.x1 = x + i.width;
-    }
-    const head = lines.find(l => /AS\s*PER\s*ATTACHED/.test(l.str));
-    if (head) {
-      if (!seal) seal = await doc.embedPdf(await (await fetch(SEAL_URL)).arrayBuffer());
-      const x0 = head.x0;
-      const col = lines.filter(l => Math.abs(l.x0 - x0) < 4 && l.y <= head.y && l.str.trim()).sort((a, b) => b.y - a.y);
-      let last = head.y;                          // baseline, PDF units from the bottom
-      for (const l of col) { if (last - l.y > 20) break; last = Math.min(last, l.y); }
-      const page = doc.getPage(n - 1), H = page.getHeight();
-      const cy = H - last + 2.4 + 42, cx = x0 + 60;
-      page.drawPage(seal[0], { x: cx - COIN / 2, y: H - cy - COIN / 2, width: COIN, height: COIN });
-      sealed = " + ตรากลม (AS PER ATTACHED)";
-    }
     if ((await p.getAnnotations()).some(a => a.subtype === "FreeText")) {
-      out.push({ page: n, bl, master, cfs, kind: "ข้าม", note: "มีข้อความอยู่แล้ว" + sealed }); continue;
+      out.push({ page: n, bl, master, cfs, kind: "ข้าม", note: "มีข้อความอยู่แล้ว" }); continue;
     }
     // house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
     const key0 = bl in rows ? bl : master in rows ? master : null;
@@ -320,7 +287,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const missing = kind !== "ISO TANK+DG" && !cfs && !dem;
     out.push({ page: n, bl, master, kind, rec, dem, missing, cfs, status, inSheet: key0 !== null, reefer,
                recMissing: reefer && !rec,
-               note: parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") + sealed });
+               note: parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") });
   }
   return { rows: out, ata, out: await doc.save(), font: fam.css.replace(/"/g, "") };
 }

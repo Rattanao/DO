@@ -50,38 +50,8 @@ CSS = ("@font-face{font-family:ang;src:url(angsab.ttf);} "
        "p{font-family:ang;font-size:15.5pt;margin:0;line-height:1.05;} u{text-decoration:underline;}")
 SPECIAL = "<p>SPECIAL CONTAINER</p><p>.......DG..........OP..........FR</p>"
 
-STAMP = pymupdf.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "stamp.pdf"))
-
-def stamp_rect(page):
-    """Centred under the rider's container list; page centre if the list runs too long."""
-    w, h = STAMP[0].rect.width, STAMP[0].rect.height
-    y = max(b[3] for b in page.get_text("blocks")) + 40
-    if y + h > page.rect.height - 40:
-        y = (page.rect.height - h) / 2
-    x = (page.rect.width - w) / 2
-    return pymupdf.Rect(x, y, x + w, y + h)
-
-SEAL = pymupdf.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "seal.pdf"))
-COIN = 64.9                     # seal.pdf box; its ring (76 of 80pt) = 2-baht coin, 21.75 mm
-
-def seal_rect(page):
-    """Under the marks that start with AS PER ATTACHED (Container No. column): centre 60pt right
-    of the text's left edge, 42pt below its last line. None when the page has no such text."""
-    lines = [(l["bbox"], re.sub(r"[\x00-\x1f]", " ", "".join(s["text"] for s in l["spans"])))
-             for b in page.get_text("dict")["blocks"] for l in b.get("lines", [])]
-    head = next((bb for bb, t in lines if re.search(r"AS\s*PER\s*ATTACHED", t)), None)
-    if not head:
-        return None
-    col = sorted((bb for bb, t in lines if abs(bb[0] - head[0]) < 4 and bb[1] >= head[1] and t.strip()), key=lambda bb: bb[1])
-    bottom = head[3]
-    for bb in col:                    # consecutive marks lines only (stop at the first big gap)
-        if bb[1] - bottom > 15: break
-        bottom = max(bottom, bb[3])
-    cx, cy = head[0] + 60, bottom + 42
-    return pymupdf.Rect(cx - COIN / 2, cy - COIN / 2, cx + COIN / 2, cy + COIN / 2)
-
 MARK = "DO-DEM-FILLED"
-# pages we already filled: the marker, or (older outputs) our stamp / Thai note text
+# pages we already filled: the marker, or (older outputs) the old stamp / Thai note text
 DONE = re.compile(r"DO-DEM-FILLED|CERTIFIED\s*TRUE\s*&\s*CORRECT\s*COPY|เริ่มเก็บค่า")
 
 doc = pymupdf.open(SRC)
@@ -95,18 +65,13 @@ for page in doc:
     status = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
     cfs = (pages[-1][1] if pages else False) if rider else bool(status and status.group(2) == "CFS")
     pages.append((rider, cfs, master))
-    if DONE.search(text):             # a DO-DEM output fed back in: never stamp or note twice
+    if DONE.search(text):             # a DO-DEM output fed back in: never note twice
         report.append((page.number + 1, bl, "เติมไว้แล้ว (ข้าม)")); continue
     page.insert_text((1, 3), MARK, fontsize=1, render_mode=3)   # invisible "already filled" marker
-    if rider:
-        page.show_pdf_page(stamp_rect(page), STAMP, 0)
-        report.append((page.number + 1, bl, "ATTACHED RIDER | ประทับตรา CERTIFIED TRUE & CORRECT COPY")); continue
-    sr = seal_rect(page)              # "AS PER ATTACHED" D/O: coin-size CORRECTION APPROVED seal
-    if sr:
-        page.show_pdf_page(sr, SEAL, 0)
-    sealed = " + ตรากลม (AS PER ATTACHED)" if sr else ""
+    if rider:                         # ATTACHED RIDER pages are left as they are
+        report.append((page.number + 1, bl, "ATTACHED RIDER (ไม่เติม)")); continue
     if page.first_annot:
-        report.append((page.number + 1, bl, "มีข้อความอยู่แล้ว (ข้าม)" + sealed)); continue
+        report.append((page.number + 1, bl, "มีข้อความอยู่แล้ว (ข้าม)")); continue
     # house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
     row = rows.get(bl) or (rows.get(bl[:-1]) if bl[-1].isalpha() else None)
     rec0, dem = row if row else (None, None)
@@ -133,7 +98,7 @@ for page in doc:
     for y, html in parts:
         if html:
             page.insert_htmlbox(pymupdf.Rect(45, y, 300, y + 45), html, css=CSS, archive=arch, scale_low=1)
-    report.append((page.number + 1, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h) + sealed))
+    report.append((page.number + 1, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h)))
 
 def print_order(pages):
     """x2 for printing. A B/L = its page plus any ATTACHED RIDER pages after it.

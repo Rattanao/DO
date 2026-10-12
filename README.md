@@ -13,14 +13,13 @@
 | ตู้เย็น (20RF / 40RH / TEMP) | `เริ่มเก็บค่าไฟวันที่  07-OCT-2026`<br>`เริ่มเก็บค่า DEM. วันที่.  09-OCT-2026` |
 | ISO TANK และมี DG | `SPECIAL CONTAINER`<br>`.......DG..........OP..........FR` เท่านั้น (ไม่มีบรรทัด DEM) |
 | STATUS `CFS/CFS` หรือ `CY/CFS` | ไม่เติมบรรทัด DEM |
-| หน้า `== ATTACHED RIDER ==` (หน้า 2 ของ B/L) | ไม่เติมวันที่ แต่ประทับตราสีน้ำเงิน `CERTIFIED TRUE & CORRECT COPY` (12.5pt เล็กกว่าคำว่า CARGO บนหัว D/O เล็กน้อย) + ตรากลม CORRECTION APPROVED ขนาดเหรียญ 2 บาท ใต้รายการตู้ (1 ตราต่อหน้า) |
-| หน้า D/O ที่ช่อง Marks เขียน `AS PER ATTACHED` (หน้า 1 ของ B/L) | ตรากลม CORRECTION APPROVED ขนาดเหรียญ 2 บาท (21.75 มม.) ในช่อง Container No. ใต้ข้อความ |
+| หน้า `== ATTACHED RIDER ==` (หน้า 2 ของ B/L) | ไม่เติมอะไร |
 
 - วันที่ DEM = ช่อง `DEM.` ใน CHECK DEM ของ B/L นั้น (House B/L เช่น `...038A` ที่ไม่มีใน CHECK DEM ใช้วันที่ของ B/L หลัก `...038`)
 - วันที่ค่าไฟ = ช่อง `REC.` ใน CHECK DEM ถ้าช่องว่างใช้ ATA + 3 วัน
 - ตัวหนังสือ Angsana New ตัวหนา 15.5pt มุมล่างซ้ายของหน้า ขีดเส้นใต้เฉพาะวันที่
 - หน้าที่มีข้อความพิมพ์เติมไว้แล้ว (annotation) จะถูกข้าม
-- ใส่ไฟล์ที่เติมไปแล้ว (DO-DEM.pdf) ซ้ำ หน้าที่เติมแล้วจะถูกข้าม ไม่ประทับตราหรือเติมวันที่ซ้อน
+- ใส่ไฟล์ที่เติมไปแล้ว (DO-DEM.pdf) ซ้ำ หน้าที่เติมแล้วจะถูกข้าม ไม่เติมวันที่ซ้อน
 - **ปริ้น x2** (หนึ่ง B/L = หน้า D/O + หน้า ATTACHED RIDER ของมัน)
   - CY: ซ้อนกันทีละ B/L เช่น 1,1,2,2
   - CFS/CFS: แยกเป็น 2 ชุดต่อ B/L หลัก เช่น 038,038A,038B, 038,038A,038B
@@ -96,9 +95,6 @@ git clone https://github.com/Rattanao/DO "%USERPROFILE%\.claude\skills\do"
 |---|---|
 | `index.html` | หน้าเว็บ |
 | `scripts/fill_do.py` | โค้ดโปรแกรม Python |
-| `stamp.pdf` | ตราประทับ CERTIFIED TRUE & CORRECT COPY (เว็บและโปรแกรมใช้ไฟล์นี้) |
-| `seal.pdf` | ตรากลมอย่างเดียว ใช้ในหน้า AS PER ATTACHED (สร้างโดย `scripts/make_stamp.py`) |
-| `scripts/make_stamp.py` | สร้าง `stamp.pdf` ใหม่ ถ้าต้องการแก้ขนาด/สี/ข้อความของตรา |
 | `SKILL.md` | คำสั่งสำหรับ Claude Code (skill `do`) |
 | `requirements.txt` | ไลบรารีที่ต้องติดตั้ง |
 
