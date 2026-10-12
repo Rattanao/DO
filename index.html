@@ -159,6 +159,8 @@ const KINDS = { "ทั่วไป": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C
 const STAMP_URL = "stamp.pdf";        // CERTIFIED TRUE & CORRECT COPY stamp, built by scripts/make_stamp.py
 const SEAL_URL = "seal.pdf";          // round CORRECTION APPROVED seal alone, for "AS PER ATTACHED" D/O pages
 const COIN = 56.7;                    // 1-baht coin, 20 mm
+const MARK = "DO-DEM-FILLED";         // invisible text on every page we fill (same as scripts/fill_do.py)
+const DONE = /DO-DEM-FILLED|CERTIFIED\s*TRUE\s*&\s*CORRECT\s*COPY|เริ่มเก็บค่า/;   // marker, or our stamp / note in older outputs
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const SPECIAL = [[["SPECIAL CONTAINER", false]], [[".......DG..........OP..........FR", false]]];
 const $ = id => document.getElementById(id);
@@ -248,7 +250,14 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const text = items.map(i => clean(i.str)).join("\n");
     const bl = (text.match(RE_BL) || ["?"])[0];
     const master = /[A-Z]$/.test(bl) ? bl.slice(0, -1) : bl;
-    if (/ATTACHED\s*RIDER/.test(text)) {
+    const rider = /ATTACHED\s*RIDER/.test(text), prevRow = out[out.length - 1];
+    if (DONE.test(text)) {                        // a DO-DEM output fed back in: never stamp or note twice
+      const st0 = text.match(RE_STATUS);
+      out.push({ page: n, bl, master, rider, cfs: rider ? !!(prevRow && prevRow.cfs) : !!st0 && st0[2] === "CFS",
+                 kind: "ข้าม", note: "เติมไว้แล้ว" }); continue;
+    }
+    doc.getPage(n - 1).drawText(MARK, { x: 1, y: 1, size: 1, opacity: 0 });   // invisible "already filled" marker
+    if (rider) {
       // stamp centred under the container list; page centre if the list runs too long
       if (!stamp) stamp = await doc.embedPdf(await (await fetch(STAMP_URL)).arrayBuffer());
       const page = doc.getPage(n - 1), W = page.getWidth(), H = page.getHeight();

@@ -80,6 +80,10 @@ def seal_rect(page):
     cx, cy = head[0] + 60, bottom + 42
     return pymupdf.Rect(cx - COIN / 2, cy - COIN / 2, cx + COIN / 2, cy + COIN / 2)
 
+MARK = "DO-DEM-FILLED"
+# pages we already filled: the marker, or (older outputs) our stamp / Thai note text
+DONE = re.compile(r"DO-DEM-FILLED|CERTIFIED\s*TRUE\s*&\s*CORRECT\s*COPY|เริ่มเก็บค่า")
+
 doc = pymupdf.open(SRC)
 report, pages = [], []          # pages: (rider, cfs, master B/L) per page, for the print x2 file
 for page in doc:
@@ -87,13 +91,16 @@ for page in doc:
     text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", " ", page.get_text())
     bl = re.search(r"HASL\w+", text).group()
     master = bl[:-1] if bl[-1].isalpha() else bl
-    if re.search(r"ATTACHED\s*RIDER", text):
-        page.show_pdf_page(stamp_rect(page), STAMP, 0)
-        pages.append((True, pages[-1][1] if pages else False, master))
-        report.append((page.number + 1, bl, "ATTACHED RIDER | ประทับตรา CERTIFIED TRUE & CORRECT COPY")); continue
+    rider = bool(re.search(r"ATTACHED\s*RIDER", text))
     status = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
-    cfs = bool(status and status.group(2) == "CFS")   # CFS/CFS, CY/CFS -> no DEM line
-    pages.append((False, cfs, master))
+    cfs = (pages[-1][1] if pages else False) if rider else bool(status and status.group(2) == "CFS")
+    pages.append((rider, cfs, master))
+    if DONE.search(text):             # a DO-DEM output fed back in: never stamp or note twice
+        report.append((page.number + 1, bl, "เติมไว้แล้ว (ข้าม)")); continue
+    page.insert_text((1, 3), MARK, fontsize=1, render_mode=3)   # invisible "already filled" marker
+    if rider:
+        page.show_pdf_page(stamp_rect(page), STAMP, 0)
+        report.append((page.number + 1, bl, "ATTACHED RIDER | ประทับตรา CERTIFIED TRUE & CORRECT COPY")); continue
     sr = seal_rect(page)              # "AS PER ATTACHED" D/O: coin-size CORRECTION APPROVED seal
     if sr:
         page.show_pdf_page(sr, SEAL, 0)

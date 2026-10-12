@@ -33,6 +33,9 @@ heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
    alone (`seal.pdf`) at 1-baht-coin size (20 mm = 56.7pt), centred 60pt right of the marks' left
    edge and 42pt below their last line, in the empty Container No. column.
 9. PDF text may use control characters as spaces (`\x03`); the script treats them as spaces.
+10. Every filled page gets invisible text `DO-DEM-FILLED`. A page that has it (or, in older outputs,
+    our stamp text or a `เริ่มเก็บค่า` note) is skipped, so feeding an output back in never stamps
+    or notes twice. A file that is already doubled must be redone from the original DO.
 
 Format: Angsana New Bold 15.5pt (a little smaller than the "HEUNG A LINE (THAILAND) CO.,LTD."
 line on the right), bottom-left of the page, dates as `09-OCT-2026`, **underline on the date
