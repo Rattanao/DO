@@ -62,7 +62,7 @@ def stamp_rect(page):
     return pymupdf.Rect(x, y, x + w, y + h)
 
 SEAL = pymupdf.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "seal.pdf"))
-COIN = 56.7                     # 1-baht coin, 20 mm
+COIN = 64.9                     # seal.pdf box; its ring (76 of 80pt) = 2-baht coin, 21.75 mm
 
 def seal_rect(page):
     """Under the marks that start with AS PER ATTACHED (Container No. column): centre 60pt right

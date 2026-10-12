@@ -30,7 +30,7 @@ heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
    edit and run `scripts/make_stamp.py`.
 7. House B/L (`...038A`, `...038B`) not in CHECK DEM: dates come from its master B/L (letter dropped).
 8. D/O page whose marks say `AS PER ATTACHED` (container list is on the rider): the round seal
-   alone (`seal.pdf`) at 1-baht-coin size (20 mm = 56.7pt), centred 60pt right of the marks' left
+   alone (`seal.pdf`) at 2-baht-coin size (ring 21.75 mm = 61.7pt; seal.pdf box 64.9pt), centred 60pt right of the marks' left
    edge and 42pt below their last line, in the empty Container No. column.
 9. PDF text may use control characters as spaces (`\x03`); the script treats them as spaces.
 10. Every filled page gets invisible text `DO-DEM-FILLED`. A page that has it (or, in older outputs,

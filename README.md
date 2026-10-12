@@ -14,7 +14,7 @@
 | ISO TANK และมี DG | `SPECIAL CONTAINER`<br>`.......DG..........OP..........FR` เท่านั้น (ไม่มีบรรทัด DEM) |
 | STATUS `CFS/CFS` หรือ `CY/CFS` | ไม่เติมบรรทัด DEM |
 | หน้า `== ATTACHED RIDER ==` (หน้า 2 ของ B/L) | ไม่เติมวันที่ แต่ประทับตราสีน้ำเงิน `CERTIFIED TRUE & CORRECT COPY` (12.5pt เล็กกว่าคำว่า CARGO บนหัว D/O เล็กน้อย) + ตรากลม CORRECTION APPROVED ใต้รายการตู้ |
-| หน้า D/O ที่ช่อง Marks เขียน `AS PER ATTACHED` (หน้า 1 ของ B/L) | ตรากลม CORRECTION APPROVED ขนาดเหรียญ 1 บาท (20 มม.) ในช่อง Container No. ใต้ข้อความ |
+| หน้า D/O ที่ช่อง Marks เขียน `AS PER ATTACHED` (หน้า 1 ของ B/L) | ตรากลม CORRECTION APPROVED ขนาดเหรียญ 2 บาท (21.75 มม.) ในช่อง Container No. ใต้ข้อความ |
 
 - วันที่ DEM = ช่อง `DEM.` ใน CHECK DEM ของ B/L นั้น (House B/L เช่น `...038A` ที่ไม่มีใน CHECK DEM ใช้วันที่ของ B/L หลัก `...038`)
 - วันที่ค่าไฟ = ช่อง `REC.` ใน CHECK DEM ถ้าช่องว่างใช้ ATA + 3 วัน
