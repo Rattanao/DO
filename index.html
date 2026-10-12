@@ -21,7 +21,7 @@
   header .wrap { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
   header p { margin: 0; opacity: .8; font-size: 15px; }
-  header .by { margin-left: auto; font-weight: 700; font-size: 15px; }
+  header .by { margin-left: auto; font-weight: 700; font-size: 15px; text-align: right; line-height: 1.5; align-self: center; }
   .wrap { max-width: 1180px; margin: 0 auto; }
   main { padding: 20px 16px 40px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 18px; }
@@ -72,12 +72,10 @@
   .hidden { display: none; }
   footer { text-align: center; color: var(--muted); font-size: 13px; padding-bottom: 24px; }
   footer a { color: var(--navy); }
-  .credit { background: var(--navy); color: #fff; font-weight: 700; font-size: 16px; padding: 10px 16px; margin-top: 8px; }
-  .credit .wrap { overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>DO</h1><p>เติมวันเริ่มเก็บค่า DEM / ค่าไฟ / SPECIAL CONTAINER ลงในใบ D/O</p><span class="by">Project by Ms. Rattana Mudlae &nbsp;Position Import DOC.</span></div></header>
+<header><div class="wrap"><h1>DO</h1><p>เติมวันเริ่มเก็บค่า DEM / ค่าไฟ / SPECIAL CONTAINER ลงในใบ D/O</p><span class="by">Project by Ms. Rattana Mudlae<br>Position Import DOC.</span></div></header>
 
 <main class="wrap">
   <section class="card">
@@ -140,8 +138,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12c (ไม่ประทับตราซ้ำ, ตราเหรียญ 2 บาท)</footer>
-<div class="credit"><div class="wrap">EDI Verification Project by Ms. Rattana Mudlae &nbsp;Position Doc. Inbound (Generated Date :2026-08-03)</div></div>
+<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12d</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
