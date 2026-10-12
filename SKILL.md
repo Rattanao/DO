@@ -3,7 +3,7 @@ name: do
 description: >
   "DO": types the demurrage / reefer-power / SPECIAL CONTAINER notes onto every page of a
   Heung-A Cargo Delivery Order PDF (input/DO*.pdf), taking the dates from CHECK DEM.xlsx
-  (the check-dem report). Writes output/DO-DEM.pdf and a print-x2 copy output/DO-DEM-PRINT.pdf. Use whenever the user says "DO", "ทำ DO",
+  (the check-dem report). Writes output/DO-DEM.pdf and a print-x2 copy output/DO-DEM-PRINT x 2.pdf. Use whenever the user says "DO", "ทำ DO",
   "เติม DO", "เติมวันที่ DEM ใน DO", or points to a folder with input/ holding a DO PDF plus
   a CHECK DEM.xlsx.
 ---
@@ -52,13 +52,13 @@ only** (the DG line is not underlined). Pages that already carry a typed annotat
    Requires `pymupdf`, `openpyxl`, and Windows' `angsana.ttc`.
    `python` may resolve to the Microsoft Store alias; if it says "Python was not found", use
    `%LOCALAPPDATA%\Python\bin\python.exe` (Git Bash: `$LOCALAPPDATA/Python/bin/python.exe`).
-   Print x2 order (DO-DEM-PRINT.pdf): a B/L = its page + its ATTACHED RIDER pages. CY: each B/L
+   Print x2 order (DO-DEM-PRINT x 2.pdf): a B/L = its page + its ATTACHED RIDER pages. CY: each B/L
    twice in a row (1,1,2,2). CFS: each master B/L's set of house B/Ls twice as separate sets
    (A,B,C,A,B,C).
 3. Render two or three pages of `output/DO-DEM.pdf` (one normal, one DG, one reefer) and look at
    them before reporting.
 4. Report in Thai: pages per type with their dates, and flag any page marked
    `** ไม่มีวันที่ DEM ใน CHECK DEM **` (DEM. is `CHECK` or the B/L is not in the sheet) and any
-   skipped page. Link `output/DO-DEM.pdf` and `output/DO-DEM-PRINT.pdf`.
+   skipped page. Link `output/DO-DEM.pdf` and `output/DO-DEM-PRINT x 2.pdf`.
 
 For layout changes (size, position, underline) edit `scripts/fill_do.py`.

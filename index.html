@@ -138,12 +138,12 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12e</footer>
+<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12f</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 const OUTPUT_NAME = "DO-DEM.pdf";
-const PRINT_NAME = "DO-DEM-PRINT.pdf";     // x2 copy in print order
+const PRINT_NAME = "DO-DEM-PRINT x 2.pdf";     // x2 copy in print order
 const REEFER_POWER_DAYS = 3;          // REC. blank in CHECK DEM -> ATA + 3 days
 const X = 46;                         // left edge of the notes, pt
 const SCALE = 6;                      // canvas px per pt (notes are embedded as images so Thai is shaped by the browser)
@@ -428,7 +428,7 @@ function save(bytes, name) {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
-// one click = both files: DO-DEM.pdf (x1) and DO-DEM-PRINT.pdf (x2, print order)
+// one click = both files: DO-DEM.pdf (x1) and DO-DEM-PRINT x 2.pdf (x2, print order)
 async function download() {
   $("download").disabled = true;
   try {

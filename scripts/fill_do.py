@@ -14,7 +14,7 @@ def find(pattern, *dirs):
 
 SRC, XLS = find("DO*.pdf", "input"), find("CHECK DEM*.xlsx", "input", "output")
 OUT = os.path.join(BASE, "output", "DO-DEM.pdf")
-OUT_PRINT = os.path.join(BASE, "output", "DO-DEM-PRINT.pdf")
+OUT_PRINT = os.path.join(BASE, "output", "DO-DEM-PRINT x 2.pdf")
 
 def ttc_faces(data):
     """Split a .ttc into standalone .ttf byte strings (no fontTools needed)."""
