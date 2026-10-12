@@ -26,7 +26,9 @@ heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
 5. Status CFS/CFS or CY/CFS (the `xx/CFS` near the SAY line): no DEM. line.
 6. `== ATTACHED RIDER ==` pages (page 2 of a B/L): left as they are (no notes, no stamp).
 7. House B/L (`...038A`, `...038B`) not in CHECK DEM: dates come from its master B/L (letter dropped).
-8. No rubber-stamp graphics are added anywhere (removed at the user's request, 2026-10-12).
+8. No rubber-stamp graphics are added anywhere (removed at the user's request, 2026-10-12). Old stamps
+   in a file fed back in (pdf-lib XObjects named `EmbeddedPdfPage-<n>`, only ever drawn by the old
+   stamp feature) are blanked out, so re-running an old output removes them.
 9. PDF text may use control characters as spaces (`\x03`); the script treats them as spaces.
 10. Every filled page gets invisible text `DO-DEM-FILLED`. A page that has it (or, in older outputs,
     the old CERTIFIED stamp text or a `เริ่มเก็บค่า` note) is skipped, so feeding an output back in

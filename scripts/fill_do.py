@@ -65,11 +65,16 @@ for page in doc:
     status = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
     cfs = (pages[-1][1] if pages else False) if rider else bool(status and status.group(2) == "CFS")
     pages.append((rider, cfs, master))
+    # old web stamps (pdf-lib embedPdf XObjects, always named EmbeddedPdfPage-<n>): blank them out
+    old = [x[0] for x in page.get_xobjects() if x[1].startswith("EmbeddedPdfPage-")]
+    for xref in old:
+        doc.update_stream(xref, b" ")
+    unstamped = " · ลบตรายางเก่าออกแล้ว" if old else ""
     if DONE.search(text):             # a DO-DEM output fed back in: never note twice
-        report.append((page.number + 1, bl, "เติมไว้แล้ว (ข้าม)")); continue
+        report.append((page.number + 1, bl, "เติมไว้แล้ว (ข้าม)" + unstamped)); continue
     page.insert_text((1, 3), MARK, fontsize=1, render_mode=3)   # invisible "already filled" marker
     if rider:                         # ATTACHED RIDER pages are left as they are
-        report.append((page.number + 1, bl, "ATTACHED RIDER (ไม่เติม)")); continue
+        report.append((page.number + 1, bl, "ATTACHED RIDER (ไม่เติม)" + unstamped)); continue
     if page.first_annot:
         report.append((page.number + 1, bl, "มีข้อความอยู่แล้ว (ข้าม)")); continue
     # house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L

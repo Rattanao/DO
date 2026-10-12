@@ -138,7 +138,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12g</footer>
+<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12h</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -222,6 +222,23 @@ function noteImage(lines, size, fam) {
 }
 
 // ---------- fill ----------
+// Older versions of this page stamped "CERTIFIED TRUE & CORRECT COPY" / a round seal with pdf-lib's
+// embedPdf, whose XObjects are always named EmbeddedPdfPage-<n>. Nothing else we (or the D/O system)
+// draw uses that name, so blanking those XObjects removes the old stamps from a file fed back in.
+function stripOldStamps(doc, page) {
+  const res = page.node.Resources();
+  const xo = res && res.lookupMaybe(PDFLib.PDFName.of("XObject"), PDFLib.PDFDict);
+  if (!xo) return 0;
+  let n = 0;
+  for (const [name, ref] of xo.entries()) {
+    if (name.toString().startsWith("/EmbeddedPdfPage-") && ref instanceof PDFLib.PDFRef) {
+      doc.context.assign(ref, doc.context.formXObject([], { BBox: [0, 0, 1, 1] }));
+      n++;
+    }
+  }
+  return n;
+}
+
 // pdfs: [{name, bytes}] merged in order; xlsBytes may be null (dates typed in instead)
 // dates: {dem, rec} for every B/L without a date in CHECK DEM; ov: page no. -> {dem, rec} for one B/L
 async function fill(pdfs, xlsBytes, size, dates, ov) {
@@ -245,15 +262,16 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const bl = (text.match(RE_BL) || ["?"])[0];
     const master = /[A-Z]$/.test(bl) ? bl.slice(0, -1) : bl;
     const rider = /ATTACHED\s*RIDER/.test(text), prevRow = out[out.length - 1];
+    const unstamped = stripOldStamps(doc, doc.getPage(n - 1)) ? " · ลบตรายางเก่าออกแล้ว" : "";
     if (DONE.test(text)) {                        // a DO-DEM output fed back in: never note twice
       const st0 = text.match(RE_STATUS);
       out.push({ page: n, bl, master, rider, cfs: rider ? !!(prevRow && prevRow.cfs) : !!st0 && st0[2] === "CFS",
-                 kind: "ข้าม", note: "เติมไว้แล้ว" }); continue;
+                 kind: "ข้าม", note: "เติมไว้แล้ว" + unstamped }); continue;
     }
     doc.getPage(n - 1).drawText(MARK, { x: 1, y: 1, size: 1, opacity: 0 });   // invisible "already filled" marker
     if (rider) {                                // ATTACHED RIDER pages are left as they are
       const prev = out[out.length - 1];
-      out.push({ page: n, bl, master, rider: true, cfs: prev ? prev.cfs : false, kind: "ATTACHED RIDER", note: "ไม่เติม" }); continue;
+      out.push({ page: n, bl, master, rider: true, cfs: prev ? prev.cfs : false, kind: "ATTACHED RIDER", note: "ไม่เติม" + unstamped }); continue;
     }
     const st = text.match(RE_STATUS), cfs = !!st && st[2] === "CFS";   // CFS/CFS, CY/CFS -> no DEM line
     const status = st ? st[0].replace(/\s/g, "") : "";
