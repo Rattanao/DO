@@ -128,7 +128,7 @@
     <div class="chips" id="chips"></div>
     <div class="toolbar">
       <input type="search" id="search" autocomplete="off" placeholder="ค้นหา B/L No. / วันที่">
-      <button id="download">ดาวน์โหลด DO-DEM.pdf</button>
+      <button id="download">ดาวน์โหลด DO-DEM.pdf (x1 + x2)</button>
       <button id="print" class="ghost">ปริ้น x2</button>
     </div>
     <div class="tbl"><table>
@@ -138,11 +138,12 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12d</footer>
+<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12e</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 const OUTPUT_NAME = "DO-DEM.pdf";
+const PRINT_NAME = "DO-DEM-PRINT.pdf";     // x2 copy in print order
 const REEFER_POWER_DAYS = 3;          // REC. blank in CHECK DEM -> ATA + 3 days
 const X = 46;                         // left edge of the notes, pt
 const SCALE = 6;                      // canvas px per pt (notes are embedded as images so Thai is shaped by the browser)
@@ -396,12 +397,16 @@ function printOrder(rows) {
   return order;
 }
 
+async function buildX2() {
+  const src = await PDFLib.PDFDocument.load(report.out), prn = await PDFLib.PDFDocument.create();
+  for (const pg of await prn.copyPages(src, printOrder(report.rows))) prn.addPage(pg);
+  return prn.save();
+}
+
 async function printX2() {
   $("print").disabled = true;
   try {
-    const src = await PDFLib.PDFDocument.load(report.out), prn = await PDFLib.PDFDocument.create();
-    for (const pg of await prn.copyPages(src, printOrder(report.rows))) prn.addPage(pg);
-    const url = URL.createObjectURL(new Blob([await prn.save()], { type: "application/pdf" }));
+    const url = URL.createObjectURL(new Blob([await buildX2()], { type: "application/pdf" }));
     let f = $("printFrame");
     if (!f) { f = document.createElement("iframe"); f.id = "printFrame"; f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0"; document.body.appendChild(f); }
     f.onload = () => {
@@ -415,12 +420,26 @@ async function printX2() {
   $("print").disabled = false;
 }
 
-function download() {
+function save(bytes, name) {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([report.out], { type: "application/pdf" }));
-  a.download = OUTPUT_NAME;
+  a.href = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  a.download = name;
   a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+// one click = both files: DO-DEM.pdf (x1) and DO-DEM-PRINT.pdf (x2, print order)
+async function download() {
+  $("download").disabled = true;
+  try {
+    save(report.out, OUTPUT_NAME);
+    const x2 = await buildX2();
+    await new Promise(r => setTimeout(r, 600));   // a short gap so the browser takes the second download too
+    save(x2, PRINT_NAME);
+  } catch (err) {
+    $("msg").textContent = "ดาวน์โหลดไม่สำเร็จ: " + err.message;
+  }
+  $("download").disabled = false;
 }
 
 // ---------- events ----------
