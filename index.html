@@ -138,7 +138,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12h</footer>
+<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12i</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -162,6 +162,7 @@ const $ = id => document.getElementById(id);
 let pdfFiles = [], xlsFile = null;    // {name, bytes}
 let report = null;                    // {rows, ata, out, name}
 let overrides = {};                   // page no. -> {dem, rec} typed into the table
+let fileWarn = "";                    // files that were not a real PDF / Excel
 const fromInput = v => { if (!v) return null; const [y, m, d] = v.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
 const toInput = d => d ? `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` : "";
 const hidden = new Set();
@@ -352,7 +353,7 @@ async function preview(n) {
 async function run(keep) {
   if (!pdfFiles.length) return;
   const page = keep === true ? +($("previewText").dataset.p || 1) : 1;
-  $("msg").textContent = ""; $("run").disabled = true; $("run").textContent = "กำลังประมวลผล...";
+  $("msg").textContent = fileWarn; $("run").disabled = true; $("run").textContent = "กำลังประมวลผล...";
   try {
     const dates = { dem: fromInput($("demAll").value), rec: fromInput($("recAll").value) };
     report = { ...(await fill(pdfFiles, xlsFile ? xlsFile.bytes : null, parseFloat($("size").value) || 15.5, dates, overrides)),
@@ -430,22 +431,36 @@ async function download() {
 // ---------- events ----------
 function update() { $("run").disabled = !pdfFiles.length; $("clear").disabled = !(pdfFiles.length || xlsFile || report); }
 function clearAll() {
-  pdfFiles = []; xlsFile = report = null; overrides = {}; hidden.clear();
+  pdfFiles = []; xlsFile = report = null; overrides = {}; fileWarn = ""; hidden.clear();
   $("pdfText").innerHTML = $("xlsText").innerHTML = "ลากไฟล์มาวาง หรือ <b>คลิกเพื่อเลือกไฟล์</b>";
   $("filePdf").value = $("fileXls").value = $("demAll").value = $("recAll").value = "";
   $("search").value = ""; $("msg").textContent = "";
   $("result").classList.add("hidden"); $("preview").classList.add("hidden");
   update();
 }
+// what a file really is, from its first bytes (a file can be named .pdf and be something else)
+function kindOf(bytes) {
+  const head = String.fromCharCode(...bytes.slice(0, 1024));
+  if (head.includes("%PDF-")) return "pdf";
+  if (head.startsWith("PK\x03\x04") || head.startsWith("\xD0\xCF\x11\xE0")) return "excel";   // .xlsx (zip) / .xls (OLE)
+  if (/^\s*</.test(head)) return "html";
+  return "other";
+}
+
 // PDFs are added to the list (1 or more DO files, merged in the order added); a new CHECK DEM replaces the old one
 async function take(files) {
   let added = false;
+  const bad = [];
   for (const f of files) {
     const item = { name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) };
-    if (/\.pdf$/i.test(f.name)) { pdfFiles.push(item); added = true; }
-    else if (/\.xlsx?$/i.test(f.name)) { xlsFile = item; added = true; $("xlsText").innerHTML = `<b>${escapeHtml(f.name)}</b> (คลิกเพื่อเปลี่ยนไฟล์)`; }
-    else $("msg").textContent = "ไฟล์นี้ใช้ไม่ได้: " + f.name;
+    const kind = kindOf(item.bytes), kb = Math.max(1, Math.round(item.bytes.length / 1024));
+    if (kind === "pdf") { pdfFiles.push(item); added = true; }
+    else if (kind === "excel") { xlsFile = item; added = true; $("xlsText").innerHTML = `<b>${escapeHtml(f.name)}</b> (คลิกเพื่อเปลี่ยนไฟล์)`; }
+    else bad.push(`"${f.name}" (${kb} KB) ไม่ใช่ไฟล์ PDF หรือ Excel จริง` +
+                  (kind === "html" ? " — เป็นหน้าเว็บที่บันทึกมา" : "") +
+                  " — เปิดไฟล์นี้ดูก่อน หรือดาวน์โหลด/Print เป็น PDF ใหม่");
   }
+  fileWarn = bad.join(" · "); $("msg").textContent = fileWarn;
   if (pdfFiles.length) $("pdfText").innerHTML = pdfFiles.map(f => `<b>${escapeHtml(f.name)}</b>`).join(" + ") + " (คลิกเพื่อเพิ่มไฟล์)";
   update();
   if (added && pdfFiles.length) { overrides = {}; await run(); }   // DO in -> process right away
