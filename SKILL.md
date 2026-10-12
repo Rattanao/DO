@@ -29,6 +29,10 @@ heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
    D/O header, plus the round CORRECTION APPROVED seal at its own size) is placed centred under the container list. To change the stamp,
    edit and run `scripts/make_stamp.py`.
 7. House B/L (`...038A`, `...038B`) not in CHECK DEM: dates come from its master B/L (letter dropped).
+8. D/O page whose marks say `AS PER ATTACHED` (container list is on the rider): the round seal
+   alone (`seal.pdf`) at 1-baht-coin size (20 mm = 56.7pt), centred 60pt right of the marks' left
+   edge and 42pt below their last line, in the empty Container No. column.
+9. PDF text may use control characters as spaces (`\x03`); the script treats them as spaces.
 
 Format: Angsana New Bold 15.5pt (a little smaller than the "HEUNG A LINE (THAILAND) CO.,LTD."
 line on the right), bottom-left of the page, dates as `09-OCT-2026`, **underline on the date

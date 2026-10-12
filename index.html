@@ -21,6 +21,7 @@
   header .wrap { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
   header p { margin: 0; opacity: .8; font-size: 15px; }
+  header .by { margin-left: auto; font-weight: 700; font-size: 15px; }
   .wrap { max-width: 1180px; margin: 0 auto; }
   main { padding: 20px 16px 40px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 18px; }
@@ -71,10 +72,12 @@
   .hidden { display: none; }
   footer { text-align: center; color: var(--muted); font-size: 13px; padding-bottom: 24px; }
   footer a { color: var(--navy); }
+  .credit { background: var(--navy); color: #fff; font-weight: 700; font-size: 16px; padding: 10px 16px; margin-top: 8px; }
+  .credit .wrap { overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>DO</h1><p>เติมวันเริ่มเก็บค่า DEM / ค่าไฟ / SPECIAL CONTAINER ลงในใบ D/O</p></div></header>
+<header><div class="wrap"><h1>DO</h1><p>เติมวันเริ่มเก็บค่า DEM / ค่าไฟ / SPECIAL CONTAINER ลงในใบ D/O</p><span class="by">Project by Ms. Rattana Mudlae &nbsp;Position Import DOC.</span></div></header>
 
 <main class="wrap">
   <section class="card">
@@ -138,6 +141,7 @@
   </section>
 </main>
 <footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a></footer>
+<div class="credit"><div class="wrap">EDI Verification Project by Ms. Rattana Mudlae &nbsp;Position Doc. Inbound (Generated Date :2026-08-03)</div></div>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -153,6 +157,8 @@ const RE_TANK = /ISO\s*TANK|\b\d\dTK\b/;
 const RE_STATUS = /\b(CY|CFS)\s*\/\s*(CY|CFS)\b/;
 const KINDS = { "ทั่วไป": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ATTACHED RIDER": "BBDEFB", "ข้าม": "E0E0E0" };
 const STAMP_URL = "stamp.pdf";        // CERTIFIED TRUE & CORRECT COPY stamp, built by scripts/make_stamp.py
+const SEAL_URL = "seal.pdf";          // round CORRECTION APPROVED seal alone, for "AS PER ATTACHED" D/O pages
+const COIN = 56.7;                    // 1-baht coin, 20 mm
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const SPECIAL = [[["SPECIAL CONTAINER", false]], [[".......DG..........OP..........FR", false]]];
 const $ = id => document.getElementById(id);
@@ -233,7 +239,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     for (let i = 1; i <= src.numPages; i++) srcPages.push(src.getPage(i));
   }
   const cache = new Map(), out = [];
-  let stamp = null;
+  let stamp = null, seal = null;
   for (let n = 1; n <= srcPages.length; n++) {
     const p = await srcPages[n - 1];
     // some re-saved PDFs write their spaces as control characters ("==\x03ATTACHED\x03RIDER\x03==")
@@ -255,8 +261,30 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     }
     const st = text.match(RE_STATUS), cfs = !!st && st[2] === "CFS";   // CFS/CFS, CY/CFS -> no DEM line
     const status = st ? st[0].replace(/\s/g, "") : "";
+    // "AS PER ATTACHED" D/O: coin-size seal 60pt right of the marks' left edge, 42pt below their last line
+    let sealed = "";
+    // pdf.js may give one item per word: rebuild text lines (same baseline, items left to right)
+    const lines = [];
+    for (const i of [...items].sort((a, b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4])) {
+      const y = i.transform[5], x = i.transform[4];
+      let l = lines.find(l => Math.abs(l.y - y) < 1.5 && x >= l.x1 - 1 && x - l.x1 < 15);
+      if (!l) lines.push(l = { y, x0: x, x1: x, str: "" });
+      l.str += clean(i.str); l.x1 = x + i.width;
+    }
+    const head = lines.find(l => /AS\s*PER\s*ATTACHED/.test(l.str));
+    if (head) {
+      if (!seal) seal = await doc.embedPdf(await (await fetch(SEAL_URL)).arrayBuffer());
+      const x0 = head.x0;
+      const col = lines.filter(l => Math.abs(l.x0 - x0) < 4 && l.y <= head.y && l.str.trim()).sort((a, b) => b.y - a.y);
+      let last = head.y;                          // baseline, PDF units from the bottom
+      for (const l of col) { if (last - l.y > 20) break; last = Math.min(last, l.y); }
+      const page = doc.getPage(n - 1), H = page.getHeight();
+      const cy = H - last + 2.4 + 42, cx = x0 + 60;
+      page.drawPage(seal[0], { x: cx - COIN / 2, y: H - cy - COIN / 2, width: COIN, height: COIN });
+      sealed = " + ตรากลม (AS PER ATTACHED)";
+    }
     if ((await p.getAnnotations()).some(a => a.subtype === "FreeText")) {
-      out.push({ page: n, bl, master, cfs, kind: "ข้าม", note: "มีข้อความอยู่แล้ว" }); continue;
+      out.push({ page: n, bl, master, cfs, kind: "ข้าม", note: "มีข้อความอยู่แล้ว" + sealed }); continue;
     }
     // house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
     const key0 = bl in rows ? bl : master in rows ? master : null;
@@ -285,7 +313,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const missing = kind !== "ISO TANK+DG" && !cfs && !dem;
     out.push({ page: n, bl, master, kind, rec, dem, missing, cfs, status, inSheet: key0 !== null, reefer,
                recMissing: reefer && !rec,
-               note: parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") });
+               note: parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") + sealed });
   }
   return { rows: out, ata, out: await doc.save(), font: fam.css.replace(/"/g, "") };
 }

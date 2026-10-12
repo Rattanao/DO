@@ -61,6 +61,25 @@ def stamp_rect(page):
     x = (page.rect.width - w) / 2
     return pymupdf.Rect(x, y, x + w, y + h)
 
+SEAL = pymupdf.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "seal.pdf"))
+COIN = 56.7                     # 1-baht coin, 20 mm
+
+def seal_rect(page):
+    """Under the marks that start with AS PER ATTACHED (Container No. column): centre 60pt right
+    of the text's left edge, 42pt below its last line. None when the page has no such text."""
+    lines = [(l["bbox"], re.sub(r"[\x00-\x1f]", " ", "".join(s["text"] for s in l["spans"])))
+             for b in page.get_text("dict")["blocks"] for l in b.get("lines", [])]
+    head = next((bb for bb, t in lines if re.search(r"AS\s*PER\s*ATTACHED", t)), None)
+    if not head:
+        return None
+    col = sorted((bb for bb, t in lines if abs(bb[0] - head[0]) < 4 and bb[1] >= head[1] and t.strip()), key=lambda bb: bb[1])
+    bottom = head[3]
+    for bb in col:                    # consecutive marks lines only (stop at the first big gap)
+        if bb[1] - bottom > 15: break
+        bottom = max(bottom, bb[3])
+    cx, cy = head[0] + 60, bottom + 42
+    return pymupdf.Rect(cx - COIN / 2, cy - COIN / 2, cx + COIN / 2, cy + COIN / 2)
+
 doc = pymupdf.open(SRC)
 report, pages = [], []          # pages: (rider, cfs, master B/L) per page, for the print x2 file
 for page in doc:
@@ -75,8 +94,12 @@ for page in doc:
     status = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
     cfs = bool(status and status.group(2) == "CFS")   # CFS/CFS, CY/CFS -> no DEM line
     pages.append((False, cfs, master))
+    sr = seal_rect(page)              # "AS PER ATTACHED" D/O: coin-size CORRECTION APPROVED seal
+    if sr:
+        page.show_pdf_page(sr, SEAL, 0)
+    sealed = " + ตรากลม (AS PER ATTACHED)" if sr else ""
     if page.first_annot:
-        report.append((page.number + 1, bl, "มีข้อความอยู่แล้ว (ข้าม)")); continue
+        report.append((page.number + 1, bl, "มีข้อความอยู่แล้ว (ข้าม)" + sealed)); continue
     # house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
     row = rows.get(bl) or (rows.get(bl[:-1]) if bl[-1].isalpha() else None)
     rec0, dem = row if row else (None, None)
@@ -103,7 +126,7 @@ for page in doc:
     for y, html in parts:
         if html:
             page.insert_htmlbox(pymupdf.Rect(45, y, 300, y + 45), html, css=CSS, archive=arch, scale_low=1)
-    report.append((page.number + 1, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h)))
+    report.append((page.number + 1, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h) + sealed))
 
 def print_order(pages):
     """x2 for printing. A B/L = its page plus any ATTACHED RIDER pages after it.
