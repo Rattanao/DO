@@ -140,7 +140,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a></footer>
+<footer><a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-12c (ไม่ประทับตราซ้ำ, ตราเหรียญ 2 บาท)</footer>
 <div class="credit"><div class="wrap">EDI Verification Project by Ms. Rattana Mudlae &nbsp;Position Doc. Inbound (Generated Date :2026-08-03)</div></div>
 
 <script>
@@ -156,8 +156,8 @@ const RE_REEFER = /\b(20|40|45)R[FH]|\bTEMP\b/;
 const RE_TANK = /ISO\s*TANK|\b\d\dTK\b/;
 const RE_STATUS = /\b(CY|CFS)\s*\/\s*(CY|CFS)\b/;
 const KINDS = { "ทั่วไป": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ATTACHED RIDER": "BBDEFB", "ข้าม": "E0E0E0" };
-const STAMP_URL = "stamp.pdf";        // CERTIFIED TRUE & CORRECT COPY stamp, built by scripts/make_stamp.py
-const SEAL_URL = "seal.pdf";          // round CORRECTION APPROVED seal alone, for "AS PER ATTACHED" D/O pages
+const STAMP_URL = "stamp.pdf?v=2026-10-12c";        // CERTIFIED TRUE & CORRECT COPY stamp, built by scripts/make_stamp.py
+const SEAL_URL = "seal.pdf?v=2026-10-12c";           // round CORRECTION APPROVED seal alone, for "AS PER ATTACHED" D/O pages
 const COIN = 64.9;                    // seal.pdf box; its ring (76 of 80pt) = 2-baht coin, 21.75 mm
 const MARK = "DO-DEM-FILLED";         // invisible text on every page we fill (same as scripts/fill_do.py)
 const DONE = /DO-DEM-FILLED|CERTIFIED\s*TRUE\s*&\s*CORRECT\s*COPY|เริ่มเก็บค่า/;   // marker, or our stamp / note in older outputs
