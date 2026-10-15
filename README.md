@@ -93,7 +93,9 @@ git clone https://github.com/Rattanao/DO "%USERPROFILE%\.claude\skills\do"
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `index.html` | หน้าเว็บ |
+| `index.html` | หน้าเว็บ (ทำออนไลน์) |
+| `guide.html` | หน้าคู่มือ + ปุ่มดาวน์โหลดโปรแกรม (https://rattanao.github.io/DO/guide.html) |
+| `run-do.bat` | ดับเบิลคลิกเพื่อรันโปรแกรมกับไฟล์ในโฟลเดอร์ `input` |
 | `scripts/fill_do.py` | โค้ดโปรแกรม Python |
 | `SKILL.md` | คำสั่งสำหรับ Claude Code (skill `do`) |
 | `requirements.txt` | ไลบรารีที่ต้องติดตั้ง |

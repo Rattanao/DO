@@ -1,7 +1,8 @@
-input/
-output/
+input/*
+!input/.gitkeep
+output/*
+!output/.gitkeep
 __pycache__/
 *.pdf
 *.xlsx
 *.xls
-
