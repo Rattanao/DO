@@ -61,7 +61,8 @@ for page in doc:
     text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", " ", page.get_text())
     bl = re.search(r"HASL\w+", text).group()
     master = bl[:-1] if bl[-1].isalpha() else bl
-    rider = bool(re.search(r"ATTACHED\s*RIDER", text))
+    # rider page = its "== ATTACHED RIDER ==" heading; a D/O page saying "AS PER ATTACHED RIDER" is not one
+    rider = bool(re.search(r"=\s*ATTACHED\s*RIDER\s*=", text)) and not re.search(r"CARGO\s*DELIVERY\s*ORDER", text)
     status = re.search(r"\b(CY|CFS)\s*/\s*(CY|CFS)\b", text)
     cfs = (pages[-1][1] if pages else False) if rider else bool(status and status.group(2) == "CFS")
     pages.append((rider, cfs, master))

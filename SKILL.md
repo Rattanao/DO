@@ -24,7 +24,9 @@ heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
    REC. blank in the sheet → ATA + 3 days.
 4. ISO TANK with DG: only the SPECIAL CONTAINER block, no DEM. line.
 5. Status CFS/CFS or CY/CFS (the `xx/CFS` near the SAY line): no DEM. line.
-6. `== ATTACHED RIDER ==` pages (page 2 of a B/L): left as they are (no notes, no stamp).
+6. `== ATTACHED RIDER ==` pages (page 2 of a B/L): left as they are (no notes, no stamp). A rider page is
+   recognised by the `== ATTACHED RIDER ==` heading and no CARGO DELIVERY ORDER header; a D/O page whose
+   description says "AS PER ATTACHED RIDER" is a normal page and gets its DEM line.
 7. House B/L (`...038A`, `...038B`) not in CHECK DEM: dates come from its master B/L (letter dropped).
 8. No rubber-stamp graphics are added anywhere (removed at the user's request, 2026-10-12). Old stamps
    in a file fed back in (pdf-lib XObjects named `EmbeddedPdfPage-<n>`, only ever drawn by the old

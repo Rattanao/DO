@@ -141,7 +141,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-19b</footer>
+<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-10-22a</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -265,7 +265,8 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const text = items.map(i => clean(i.str)).join("\n");
     const bl = (text.match(RE_BL) || ["?"])[0];
     const master = /[A-Z]$/.test(bl) ? bl.slice(0, -1) : bl;
-    const rider = /ATTACHED\s*RIDER/.test(text), prevRow = out[out.length - 1];
+    // rider page = its "== ATTACHED RIDER ==" heading; a D/O page saying "AS PER ATTACHED RIDER" is not one
+    const rider = /=\s*ATTACHED\s*RIDER\s*=/.test(text) && !/CARGO\s*DELIVERY\s*ORDER/.test(text), prevRow = out[out.length - 1];
     const unstamped = stripOldStamps(doc, doc.getPage(n - 1)) ? " · ลบตรายางเก่าออกแล้ว" : "";
     if (DONE.test(text)) {                        // a DO-DEM output fed back in: never note twice
       const st0 = text.match(RE_STATUS);
