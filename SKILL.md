@@ -46,7 +46,10 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     (web table and script output); B/Ls that match on every field are only counted.
     - ชื่อเรือ: D/O "DONGJIN CONFIDENT 0153S" = form "DONGJIN CONFIDENT V.0153S" ("V." ignored)
     - วันที่เรือเข้า: D/O `Vessel Arrival Date : 2026.11.04` = form `4-Nov-26` (both form pages)
-    - CNTR (owner code + U/J/Z + 7 digits), CNEE (under the form's `CNEE:` label), B/L NO.
+    - CNTR (owner code + U/J/Z + 7 digits; the D/O side includes its ATTACHED RIDER pages), B/L NO.
+    - CNEE: under the form's `CNEE:` label, **all its lines** (long names wrap: "THAI SAMSUNG ELECTRONICS" /
+      "CO.,LTD."). Matches if equal, or if the D/O box only adds an address after a full company name.
+      A corrected long value is wrapped onto the same number of lines and the old extra lines are covered.
     - STATUS: FCL = D/O CY/CY or CFS/CY; CFS = เปิดตู้ and LCL = ขนส่ง both match a CFS D/O (xx/CFS); D/O LCL(AGENT) = LCL.
       The form may add Thai, e.g. `LCL (ขนส่งแรงงาน-เรือ)`; the FCL/LCL/CFS keyword is what counts.
     - A form that has no such field (คำร้อง has no B/L / STATUS) shows "(ฟอร์มนี้ไม่มีช่องนี้)", not a mismatch.

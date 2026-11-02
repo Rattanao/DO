@@ -233,18 +233,25 @@ def same(key, d, f):
         if d.endswith("CFS"): return k in ("CFS", "LCL")
         if "LCL" in d: return k == "LCL"
         return False
+    if key == "cnee":   # the D/O box may go on with an address: a full company name on the form that starts it is fine
+        return norm(d) == norm(f) or (bool(RE_COMPANY_END.search(f)) and norm(d).startswith(norm(f)))
     return norm(d) == norm(f)
+RE_COMPANY_END = re.compile(r"(CO\.?\s*,?\s*LTD\.?|LIMITED|LTD\.?|INC\.?|CORP(ORATION)?\.?|COMPANY|PCL\.?|PLC\.?)\s*$", re.I)
 
 def check_forms():
     out = []
-    for d in [p for p in info if p["kind"] == "do"]:
+    for di, d in enumerate(info):
+        if d["kind"] != "do": continue
         forms = [p for p in info if p["kind"] in ("open1", "open2") and p["bl"] == d["bl"]]
         if not forms: continue
+        # containers can be listed on the D/O's ATTACHED RIDER pages ("AS PER ATTACHED RIDER")
+        rider_text, j = "", di + 1
+        while j < len(info) and info[j]["kind"] == "rider": rider_text += "\n" + info[j]["text"]; j += 1
         st = RE_STATUS.search(d["text"])
         lcl = re.search(r"\bLCL\s*(\(\s*\w+\s*\))?", d["text"])
         dof = {"vessel": under(d["lines"], r"^Ocean\s*Vessel", 20, 150),
                "date": (re.search(r"Arrival\s*Date\s*:?\s*(\d{4}\.\d{1,2}\.\d{1,2})", d["text"]) or [None, ""])[1],
-               "cntr": ", ".join(dict.fromkeys(RE_CNTR.findall(d["text"]))),
+               "cntr": ", ".join(dict.fromkeys(RE_CNTR.findall(d["text"] + rider_text))),
                "cnee": under(d["lines"], r"^Consignee$", 60, 250),
                "bl": d["bl"],
                "status": st.group(0).replace(" ", "") if st else (re.sub(r"\s", "", lcl.group()) if lcl else "")}
@@ -264,7 +271,16 @@ def check_forms():
                     c = sorted([l for l in L if lab and 4 < l["y0"] - lab["y0"] < 30 and abs(l["x0"] - lab["x0"]) < 20], key=lambda l: l["y0"])
                     c = c[0] if c else next((l for l in L if norm(l["s"]) == norm(dof["cnee"])), None) or \
                         next((l for l in L if re.search(r"CO\.?,?\s*LTD|LIMITED|COMPANY", l["s"]) and "HEUNG A LINE" not in l["s"]), None)
-                    v = c["s"] if c else None
+                    v = None
+                    if c:
+                        # a long consignee wraps onto the next line(s) ("THAI SAMSUNG ELECTRONICS" / "CO.,LTD."): take them all
+                        parts, prev = [c["s"]], c
+                        if lab:
+                            for l in sorted([l for l in L if l["y0"] > c["y0"] and abs(l["x0"] - c["x0"]) < 20], key=lambda l: l["y0"]):
+                                if l["y0"] - prev["y1"] > (prev["y1"] - prev["y0"]) * 0.8 or len(parts) >= 3 or re.match(r"(ONE|B/L|STATUS)\b", l["s"]):
+                                    break
+                                parts.append(l["s"]); prev = l
+                        v = " ".join(parts)
                 elif key == "bl":
                     v = next((m.group() for l in L for m in [RE_BL.search(l["s"])] if m), None)
                 else:
