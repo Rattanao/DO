@@ -227,9 +227,9 @@ def same(key, d, f):
     if key == "date": return bool(ymd(d)) and ymd(d) == ymd(f)
     if key == "vessel": return norm(re.sub(r"\bV\s*\.\s*(?=\w)", "", d)) == norm(re.sub(r"\bV\s*\.\s*(?=\w)", "", f))
     if key == "cntr": return sorted(d.split(", ")) == sorted(f.split(", "))
-    if key == "status":   # FCL = CY/CY, CFS = เปิดตู้, LCL = ขนส่ง
+    if key == "status":   # FCL = CY/CY or CFS/CY, CFS = เปิดตู้, LCL = ขนส่ง
         k = (re.search(r"\b(FCL|LCL|CFS)\b", f) or [None, None])[1]
-        if re.fullmatch(r"CY/CY", d): return k == "FCL"
+        if d.endswith("/CY"): return k == "FCL"
         if d.endswith("CFS"): return k in ("CFS", "LCL")
         if "LCL" in d: return k == "LCL"
         return False
@@ -284,13 +284,18 @@ prn.save(OUT_PRINT, garbage=4, deflate=True)
 for n, r in enumerate(report, 1): print(n, *r[1:], sep=" | ")
 print(f"\nไฟล์ปริ้น x2: {os.path.basename(OUT_PRINT)} ({len(prn)} หน้า)")
 
+# only the B/Ls that need fixing are listed; matching ones are just counted
+checks = check_forms()
+need = [c for c in checks if any(cell[1] is False for _, _, cells in c[2] for cell in cells)]
 bad = 0
-for bl, heads, rows_ in check_forms():
-    print(f"\n=== ตรวจใบเปิดตู้ / คำร้อง  B/L {bl} ===")
+for bl, heads, rows_ in need:
+    print(f"\n=== ใบเปิดตู้ / คำร้อง ต้องแก้  B/L {bl} ===")
     print(" | ".join(["หัวข้อ", "DO"] + heads + ["ผล"]))
     for label, dv, cells in rows_:
         ok = all(c[1] is not False for c in cells)
         bad += 0 if ok else sum(1 for c in cells if c[1] is False)
         print(" | ".join([label, dv or "-"] + ["(ฟอร์มนี้ไม่มีช่องนี้)" if v is None else v for v, _ in cells] + ["ตรง" if ok else "** ไม่ตรง **"]))
+if checks:
+    print(f"\nตรวจใบเปิดตู้ {len(checks)} B/L: ต้องแก้ {len(need)} B/L ({bad} ช่อง), ตรงทุกหัวข้อ {len(checks) - len(need)} B/L")
 if bad:
-    print(f"\n!! ใบเปิดตู้ / คำร้อง ไม่ตรงกับ DO {bad} ช่อง — แก้ได้บนเว็บ https://rattanao.github.io/DO/ (ตาราง ตรวจใบเปิดตู้)")
+    print("!! แก้ได้บนเว็บ https://rattanao.github.io/DO/ (ตาราง ตรวจใบเปิดตู้)")

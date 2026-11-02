@@ -164,7 +164,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-02a</footer>
+<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-02b</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -494,7 +494,7 @@ function same(key, doVal, formVal) {
   if (key === "cntr") return norm(doVal.split(", ").sort().join()) === norm(formVal.split(", ").sort().join());
   if (key === "status") {
     const d = String(doVal).toUpperCase(), f = (String(formVal).match(/\b(FCL|LCL|CFS)\b/) || [])[1];
-    if (/^CY\/CY$/.test(d)) return f === "FCL";
+    if (/\/CY$/.test(d)) return f === "FCL";                     // CY/CY and CFS/CY = FCL
     if (/CFS$/.test(d)) return f === "CFS" || f === "LCL";   // CFS = เปิดตู้, LCL = ขนส่ง
     if (/LCL/.test(d)) return f === "LCL";                    // D/O LCL(AGENT) -> ใบเปิด LCL (ขนส่ง)
     return false;
@@ -508,7 +508,7 @@ function suggest(key, doVal, formVal) {
     if (m) { const mon = MON3[+m[2] - 1]; return `${+m[3]}-${mon[0]}${mon.slice(1).toLowerCase()}-${m[1].slice(2)}`; }
   }
   if (key === "vessel") { const m = String(doVal).match(/^(.*?)\s+(\S+)$/); return m ? `${m[1]} V.${m[2]}` : doVal; }
-  if (key === "status") return /^CY\/CY$/i.test(doVal) ? "FCL" : /CFS$/i.test(doVal) ? "CFS (เปิดตู้)" : /LCL/i.test(doVal) ? "LCL (ขนส่งแรงงาน-เรือ)" : formVal;
+  if (key === "status") return /\/CY$/i.test(doVal) ? "FCL" : /CFS$/i.test(doVal) ? "CFS (เปิดตู้)" : /LCL/i.test(doVal) ? "LCL (ขนส่งแรงงาน-เรือ)" : formVal;
   return doVal;
 }
 
@@ -632,9 +632,12 @@ async function download() {
 // ---------- ใบเปิดตู้ check table + edits ----------
 let fixedFiles = new Map();           // pdfFiles index -> corrected bytes (after "แก้ไข")
 function renderChecks() {
-  const blocks = report.checks || [];
-  $("checkCard").classList.toggle("hidden", !blocks.length);
-  if (!blocks.length) return;
+  const all = report.checks || [];
+  $("checkCard").classList.toggle("hidden", !all.length);
+  if (!all.length) return;
+  // only the B/Ls that need fixing are listed; matching ones are just counted
+  const blocks = all.filter(b => b.fields.some(fd => fd.cells.some(c => c.ok === false)));
+  const okCount = all.length - blocks.length;
   let bad = 0, k = 0;
   $("checks").innerHTML = blocks.map(b => {
     const pagesHdr = b.fields[0].cells.map(c => `<th>${c.page}</th>`).join("");
@@ -655,8 +658,9 @@ function renderChecks() {
     }).join("");
     return `<div class="chk"><h3>B/L ${escapeHtml(b.bl)}</h3><div class="tbl"><table>` +
       `<thead><tr><th>หัวข้อ</th><th>DO (ต้นฉบับ)</th>${pagesHdr}<th>ผล</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
-  }).join("") + (bad ? `<p class="msg">⚠ ไม่ตรง ${bad} ช่อง — แก้ค่าในช่องสีแดง แล้วกด “แก้ไขใบเปิดตู้ตามช่องที่แก้”</p>`
-                     : `<p class="allok">✓ ใบเปิดตู้ / คำร้อง ตรงกับ DO ทุกหัวข้อ</p>`);
+  }).join("") + (bad ? `<p class="msg">⚠ ต้องแก้ ${blocks.length} B/L (${bad} ช่อง) — แก้ค่าในช่องสีแดง แล้วกด “แก้ไขใบเปิดตู้ตามช่องที่แก้”` +
+                         (okCount ? ` · อีก ${okCount} B/L ตรงทุกหัวข้อ (ไม่แสดง)` : "") + `</p>`
+                     : `<p class="allok">✓ ใบเปิดตู้ / คำร้อง ตรงกับ DO ทุกหัวข้อ (${all.length} B/L)</p>`);
   $("applyFix").classList.toggle("hidden", !bad);
   // warning at the top too, and bring the table into view
   $("msg").textContent = [fileWarn, bad ? `⚠ ใบเปิดตู้ / คำร้อง ไม่ตรงกับ DO ${bad} ช่อง — แก้ได้ในตาราง “ตรวจใบเปิดตู้” ด้านล่าง` : ""].filter(Boolean).join(" · ");

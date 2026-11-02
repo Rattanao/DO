@@ -42,11 +42,12 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     never notes twice. A file that is already doubled must be redone from the original DO.
 11. **Merge order** per D/O B/L: D/O (+ its rider pages) → ATTACHED sheet → ใบเปิดตู้ → คำร้อง. Pages of a
     B/L with no D/O go at the end. ATTACHED / ใบเปิดตู้ / คำร้อง pages are never filled.
-12. **ใบเปิดตู้ / คำร้อง check** against the D/O, every mismatch flagged:
+12. **ใบเปิดตู้ / คำร้อง check** against the D/O, every mismatch flagged. Only B/Ls that need fixing are listed
+    (web table and script output); B/Ls that match on every field are only counted.
     - ชื่อเรือ: D/O "DONGJIN CONFIDENT 0153S" = form "DONGJIN CONFIDENT V.0153S" ("V." ignored)
     - วันที่เรือเข้า: D/O `Vessel Arrival Date : 2026.11.04` = form `4-Nov-26` (both form pages)
     - CNTR (owner code + U/J/Z + 7 digits), CNEE (under the form's `CNEE:` label), B/L NO.
-    - STATUS: FCL = D/O CY/CY; CFS = เปิดตู้ and LCL = ขนส่ง both match a CFS D/O; D/O LCL(AGENT) = LCL.
+    - STATUS: FCL = D/O CY/CY or CFS/CY; CFS = เปิดตู้ and LCL = ขนส่ง both match a CFS D/O (xx/CFS); D/O LCL(AGENT) = LCL.
       The form may add Thai, e.g. `LCL (ขนส่งแรงงาน-เรือ)`; the FCL/LCL/CFS keyword is what counts.
     - A form that has no such field (คำร้อง has no B/L / STATUS) shows "(ฟอร์มนี้ไม่มีช่องนี้)", not a mismatch.
 13. **Correcting a form** is done on the web page only (table "ตรวจใบเปิดตู้"): the old value is covered
