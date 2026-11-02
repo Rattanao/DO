@@ -154,7 +154,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
     <p class="sub">ไม่ต้องติดตั้งอะไร ไฟล์ประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้อยู่ ไม่มีการอัปโหลดไปที่ใด</p>
     <ol class="steps">
       <li><div>
-        <p><b>ลากไฟล์ DO (.pdf) มาวาง</b> ใส่ได้ 1 ไฟล์หรือมากกว่า เว็บจะรวมต่อกันตามลำดับ</p>
+        <p><b>ลากไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) มาวาง</b> ใส่ได้หลายไฟล์ ลำดับไหนก็ได้ เว็บรวมทีละ B/L เรียง DO → ATTACHED → ใบเปิดตู้ → คำร้อง</p>
         <p class="note">ไฟล์ <code>CHECK DEM.xlsx</code> ใส่หรือไม่ใส่ก็ได้ ถ้าไม่ใส่ ให้เติมช่อง <b>DEM. วันที่</b> และ/หรือ <b>ค่าไฟ วันที่</b> เอง</p>
       </div></li>
       <li><div>
@@ -192,7 +192,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
     <ol class="steps">
       <li><div>
         <p><b>วางไฟล์ในโฟลเดอร์ <code>input</code></b></p>
-        <p class="note">ไฟล์ D/O ที่ชื่อขึ้นต้นด้วย <code>DO</code> เช่น <code>DO-SWSR.pdf</code> และไฟล์ <code>CHECK DEM.xlsx</code> (จาก <a href="https://github.com/Rattanao/Check-dem">Check-dem</a>)</p>
+        <p class="note">ไฟล์ D/O (และ ATTACHED / ใบเปิดตู้ ถ้ามี) และไฟล์ <code>CHECK DEM.xlsx</code> (จาก <a href="https://github.com/Rattanao/Check-dem">Check-dem</a>)</p>
       </div></li>
       <li><div>
         <p><b>ดับเบิลคลิก <code>run-do.bat</code></b></p>
@@ -203,6 +203,17 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
         <p class="note">ไฟล์ใน <code>input</code> ไม่ถูกแก้ ถ้าเปิดไฟล์ผลค้างไว้ ต้องปิดก่อนรันใหม่</p>
       </div></li>
     </ol>
+  </section>
+
+  <section class="panel" id="openform">
+    <h2>ตรวจใบเปิดตู้ / คำร้อง</h2>
+    <p class="sub">ใส่ใบเปิดตู้มาพร้อม DO เว็บจะเทียบให้ทันที ช่องที่ไม่ตรงขึ้นสีแดง และมีคำเตือนด้านบนของหน้า</p>
+    <ul class="check-list">
+      <li>เทียบ <b>ชื่อเรือ</b> (ไม่นับ “V.”), <b>วันที่เรือเข้า</b> (DO 2026.11.04 = ใบเปิด 4-Nov-26), <b>CNTR</b>, <b>CNEE</b>, <b>B/L NO.</b>, <b>STATUS</b></li>
+      <li>STATUS: FCL = CY/CY · CFS = เปิดตู้ · LCL = ขนส่ง (เขียนต่อด้วยภาษาไทยได้ เช่น <code>LCL (ขนส่งแรงงาน-เรือ)</code>)</li>
+      <li>แก้ค่าในช่องสีแดง แล้วกด <b>แก้ไขใบเปิดตู้ตามช่องที่แก้</b> → ตรวจซ้ำเป็นสีเขียว</li>
+      <li><b>บันทึกทับไฟล์เดิม</b> (Chrome / Edge) หรือ <b>ดาวน์โหลดใบเปิดที่แก้แล้ว</b></li>
+    </ul>
   </section>
 
   <section class="panel" id="rules">
@@ -216,7 +227,8 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
           <tr class="o"><td>DG</td><td class="mono">UN 3077 / CLASS 9 / CL9</td><td class="thai">SPECIAL CONTAINER · .......DG..........OP..........FR · บรรทัด DEM</td></tr>
           <tr class="g"><td>REEFER</td><td class="mono">20RF / 40RH / TEMP</td><td class="thai">เริ่มเก็บค่าไฟวันที่ <u>15-OCT-2026</u> · เริ่มเก็บค่า DEM. วันที่. <u>22-OCT-2026</u></td></tr>
           <tr class="r"><td>ISO TANK + DG</td><td class="mono">ISO TANK และ UN / CLASS</td><td class="thai">SPECIAL CONTAINER · .......DG..........OP..........FR เท่านั้น</td></tr>
-          <tr class="e"><td>CFS</td><td class="mono">CFS/CFS, CY/CFS</td><td class="thai">ไม่เติมบรรทัด DEM</td></tr>
+          <tr class="e"><td>CFS SPLIT</td><td class="mono">CFS/CFS + House B/L A, B, C…</td><td class="thai">ไม่เติมบรรทัด DEM</td></tr>
+          <tr class="b"><td>CFS เดี่ยว</td><td class="mono">CFS/CFS ไม่ SPLIT</td><td class="thai">เติม DEM และอย่างอื่นเหมือน CY</td></tr>
           <tr class="e"><td>ATTACHED RIDER</td><td class="mono">== ATTACHED RIDER ==</td><td class="thai">ไม่เติม (หน้า 2 ของ B/L)</td></tr>
         </tbody>
       </table>

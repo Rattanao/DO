@@ -1,21 +1,25 @@
 ---
 name: do
 description: >
-  "DO": types the demurrage / reefer-power / SPECIAL CONTAINER notes onto every page of a
-  Heung-A Cargo Delivery Order PDF (input/DO*.pdf), taking the dates from CHECK DEM.xlsx
-  (the check-dem report). Writes output/DO-DEM.pdf and a print-x2 copy output/DO-DEM-PRINT x 2.pdf. Use whenever the user says "DO", "ทำ DO",
-  "เติม DO", "เติมวันที่ DEM ใน DO", or points to a folder with input/ holding a DO PDF plus
-  a CHECK DEM.xlsx.
+  "DO": types the demurrage / reefer-power / SPECIAL CONTAINER notes onto every Heung-A Cargo
+  Delivery Order page in input/ (dates from CHECK DEM.xlsx, the check-dem report), merges each B/L
+  as D/O -> ATTACHED sheet -> ใบเปิดตู้ / คำร้อง, and checks the ใบเปิดตู้ / คำร้อง against the D/O
+  (vessel, arrival date, CNTR, CNEE, B/L NO., STATUS). Writes output/DO-DEM.pdf and a print-x2 copy
+  output/DO-DEM-PRINT x 2.pdf. Use whenever the user says "DO", "ทำ DO", "เติม DO", "เติมวันที่ DEM ใน DO",
+  "รวม DO ATTACHED ใบเปิด", "ตรวจใบเปิดตู้", or points to a folder with input/ holding a DO PDF
+  (with or without ATTACHED.pdf / ใบเปิด.pdf) plus a CHECK DEM.xlsx.
 ---
 
 # DO
 
 Rattana's confirmed layout. Run the bundled script; do not place the text by hand.
 
-## Rules (already implemented in the script)
+## Rules (already implemented in the script and in index.html)
 
-One B/L per page; the page is matched to CHECK DEM.xlsx by its B/L No. Columns are found by
-heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
+Every PDF in `input/` is read and each page is classified by its text: D/O (`CARGO DELIVERY ORDER`),
+ATTACHED RIDER (`== ATTACHED RIDER ==`), ใบเปิดตู้ (`ขออนุญาตเปิดตู้คอนเทนเนอร์`), คำร้อง (`อารักขาของศุลกากร`,
+belongs to the ใบเปิดตู้ before it), otherwise ATTACHED sheet. A D/O page is matched to CHECK DEM.xlsx by
+its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
 
 1. Every DO: `เริ่มเก็บค่า DEM. วันที่.  <DEM.>`
 2. DG seen (UN no. / CLASS / CL9 in the goods text): add above it
@@ -23,7 +27,8 @@ heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
 3. Reefer seen (20RF / 40RH / TEMP): `เริ่มเก็บค่าไฟวันที่  <REC.>` then the DEM. line.
    REC. blank in the sheet → ATA + 3 days.
 4. ISO TANK with DG: only the SPECIAL CONTAINER block, no DEM. line.
-5. Status CFS/CFS or CY/CFS (the `xx/CFS` near the SAY line): no DEM. line.
+5. Status CFS/CFS or CY/CFS: **split** set (a house B/L `...A`, `...B`, or a master B/L whose house B/Ls
+   are in the job) → no DEM. line. **Single CFS D/O (not split)** → DEM and everything else like CY.
 6. `== ATTACHED RIDER ==` pages (page 2 of a B/L): left as they are (no notes, no stamp). A rider page is
    recognised by the `== ATTACHED RIDER ==` heading and no CARGO DELIVERY ORDER header; a D/O page whose
    description says "AS PER ATTACHED RIDER" is a normal page and gets its DEM line.
@@ -35,6 +40,21 @@ heading (`REC.`, `DEM.`, `B/L No.`), ATA from the cell after `ATA`.
 10. Every filled page gets invisible text `DO-DEM-FILLED`. A page that has it (or, in older outputs,
     the old CERTIFIED stamp text or a `เริ่มเก็บค่า` note) is skipped, so feeding an output back in
     never notes twice. A file that is already doubled must be redone from the original DO.
+11. **Merge order** per D/O B/L: D/O (+ its rider pages) → ATTACHED sheet → ใบเปิดตู้ → คำร้อง. Pages of a
+    B/L with no D/O go at the end. ATTACHED / ใบเปิดตู้ / คำร้อง pages are never filled.
+12. **ใบเปิดตู้ / คำร้อง check** against the D/O, every mismatch flagged:
+    - ชื่อเรือ: D/O "DONGJIN CONFIDENT 0153S" = form "DONGJIN CONFIDENT V.0153S" ("V." ignored)
+    - วันที่เรือเข้า: D/O `Vessel Arrival Date : 2026.11.04` = form `4-Nov-26` (both form pages)
+    - CNTR (owner code + U/J/Z + 7 digits), CNEE (under the form's `CNEE:` label), B/L NO.
+    - STATUS: FCL = D/O CY/CY; CFS = เปิดตู้ and LCL = ขนส่ง both match a CFS D/O; D/O LCL(AGENT) = LCL.
+      The form may add Thai, e.g. `LCL (ขนส่งแรงงาน-เรือ)`; the FCL/LCL/CFS keyword is what counts.
+    - A form that has no such field (คำร้อง has no B/L / STATUS) shows "(ฟอร์มนี้ไม่มีช่องนี้)", not a mismatch.
+13. **Correcting a form** is done on the web page only (table "ตรวจใบเปิดตู้"): the old value is covered
+    white and the new one drawn by the browser (Thai works), shifted left / shrunk to stay on the paper.
+    Each correction is recorded in the PDF Keywords `DOCOVERS:<json>` ({pi, x, y, w, h, base, v}, PDF
+    units); both the web page and this script read it, so a corrected file re-checks as matching.
+    Buttons: "บันทึกทับไฟล์เดิม" (Chrome/Edge, writes back to the chosen file) and "ดาวน์โหลดใบเปิดที่แก้แล้ว"
+    (`<name>-แก้ไข.pdf`).
 
 Format: Angsana New Bold 15.5pt (a little smaller than the "HEUNG A LINE (THAILAND) CO.,LTD."
 line on the right), bottom-left of the page, dates as `09-OCT-2026`, **underline on the date
@@ -42,8 +62,9 @@ only** (the DG line is not underlined). Pages that already carry a typed annotat
 
 ## Steps
 
-1. Job folder = the working directory (needs `input/DO*.pdf`; `CHECK DEM*.xlsx` in `input/` or
-   `output/`). If CHECK DEM.xlsx is missing, run the check-dem skill first.
+1. Job folder = the working directory (needs the D/O PDF(s) in `input/`, optionally ATTACHED / ใบเปิด PDFs;
+   `CHECK DEM*.xlsx` in `input/` or `output/`). Without CHECK DEM the script still runs: D/O pages without
+   a date are flagged `** ไม่มีวันที่ DEM ใน CHECK DEM **`. To make one, run the check-dem skill first.
 2. Run:
    ```bash
    python -X utf8 "<skill dir>/scripts/fill_do.py" "<job folder>"
@@ -51,13 +72,14 @@ only** (the DG line is not underlined). Pages that already carry a typed annotat
    Requires `pymupdf`, `openpyxl`, and Windows' `angsana.ttc`.
    `python` may resolve to the Microsoft Store alias; if it says "Python was not found", use
    `%LOCALAPPDATA%\Python\bin\python.exe` (Git Bash: `$LOCALAPPDATA/Python/bin/python.exe`).
-   Print x2 order (DO-DEM-PRINT x 2.pdf): a B/L = its page + its ATTACHED RIDER pages. CY: each B/L
-   twice in a row (1,1,2,2). CFS: each master B/L's set of house B/Ls twice as separate sets
-   (A,B,C,A,B,C).
+   Print x2 order (DO-DEM-PRINT x 2.pdf): a B/L = its page + its ATTACHED RIDER / ATTACHED / ใบเปิดตู้
+   pages. CY: each B/L twice in a row (1,1,2,2). CFS: each master B/L's set of house B/Ls twice as separate
+   sets (A,B,C,A,B,C).
 3. Render two or three pages of `output/DO-DEM.pdf` (one normal, one DG, one reefer) and look at
    them before reporting.
-4. Report in Thai: pages per type with their dates, and flag any page marked
-   `** ไม่มีวันที่ DEM ใน CHECK DEM **` (DEM. is `CHECK` or the B/L is not in the sheet) and any
-   skipped page. Link `output/DO-DEM.pdf` and `output/DO-DEM-PRINT x 2.pdf`.
+4. Report in Thai: pages per type with their dates, the merge order, and the ใบเปิดตู้ check table; flag any
+   page marked `** ไม่มีวันที่ DEM ใน CHECK DEM **` (DEM. is `CHECK` or the B/L is not in the sheet), any
+   skipped page and every `** ไม่ตรง **` form field (fix on https://rattanao.github.io/DO/). Link
+   `output/DO-DEM.pdf` and `output/DO-DEM-PRINT x 2.pdf`.
 
-For layout changes (size, position, underline) edit `scripts/fill_do.py`.
+For layout changes (size, position, underline) edit `scripts/fill_do.py` and `index.html` together.

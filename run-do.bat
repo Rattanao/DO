@@ -2,7 +2,7 @@
 chcp 65001 >nul
 cd /d "%~dp0"
 echo ===== DO =====
-echo วางไฟล์ DO (.pdf ชื่อขึ้นต้นด้วย DO) และ CHECK DEM.xlsx ไว้ในโฟลเดอร์ input ก่อน
+echo วางไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) และ CHECK DEM.xlsx ไว้ในโฟลเดอร์ input ก่อน
 echo.
 
 rem หา Python ที่รันได้จริง (ตัว python.exe ของ Microsoft Store บางเครื่องเป็นแค่ทางลัดที่รันไม่ได้)
