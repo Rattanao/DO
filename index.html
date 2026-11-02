@@ -164,7 +164,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-02c</footer>
+<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-02d</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -575,8 +575,16 @@ async function run(keep) {
   $("msg").textContent = fileWarn; $("run").disabled = true; $("run").textContent = "กำลังประมวลผล...";
   try {
     const dates = { dem: fromInput($("demAll").value), rec: fromInput($("recAll").value) };
-    report = { ...(await fill(pdfFiles, xlsFile ? xlsFile.bytes : null, parseFloat($("size").value) || 15.5, dates, overrides)),
-               name: pdfFiles.map(f => f.name).join(", ") };
+    const doFill = async () => ({ ...(await fill(pdfFiles, xlsFile ? xlsFile.bytes : null, parseFloat($("size").value) || 15.5, dates, overrides)),
+                                  name: pdfFiles.map(f => f.name).join(", ") });
+    report = await doFill();
+    const auto = dateFixes(report.checks);
+    if (auto.size) {
+      const n = [...auto.values()].reduce((t, l) => t + l.length, 0);
+      await writeFixes(auto);
+      report = await doFill();
+      autoNote = `แก้วันที่ใบเปิดตู้ / คำร้องตาม DO ให้อัตโนมัติแล้ว ${n} ช่อง`;
+    }
     if (keep !== true) { hidden.clear(); $("search").value = ""; }
     render(); renderChecks();
     preview(Math.min(page, report.rows.length));   // not awaited: the button is usable again at once
@@ -648,6 +656,7 @@ async function download() {
 }
 
 // ---------- ใบเปิดตู้ check table + edits ----------
+let autoNote = "";                    // dates corrected automatically in this job
 let fixedFiles = new Map();           // pdfFiles index -> corrected bytes (after "แก้ไข")
 function renderChecks() {
   const all = report.checks || [];
@@ -681,7 +690,7 @@ function renderChecks() {
                      : `<p class="allok">✓ ใบเปิดตู้ / คำร้อง ตรงกับ DO ทุกหัวข้อ (${all.length} B/L)</p>`);
   $("applyFix").classList.toggle("hidden", !bad);
   // warning at the top too, and bring the table into view
-  $("msg").textContent = [fileWarn, bad ? `⚠ ใบเปิดตู้ / คำร้อง ไม่ตรงกับ DO ${bad} ช่อง — แก้ได้ในตาราง “ตรวจใบเปิดตู้” ด้านล่าง` : ""].filter(Boolean).join(" · ");
+  $("msg").textContent = [fileWarn, autoNote, bad ? `⚠ ใบเปิดตู้ / คำร้อง ไม่ตรงกับ DO ${bad} ช่อง — แก้ได้ในตาราง “ตรวจใบเปิดตู้” ด้านล่าง` : ""].filter(Boolean).join(" · ");
   if (bad) $("checkCard").scrollIntoView({ behavior: "smooth", block: "start" });
   $("saveOver").classList.toggle("hidden", !fixedFiles.size || ![...fixedFiles.keys()].some(i => pdfFiles[i] && pdfFiles[i].handle));
   $("saveFixed").classList.toggle("hidden", !fixedFiles.size);
@@ -699,16 +708,8 @@ function fieldImage(text, size) {
   return { png: cv.toDataURL("image/png"), w, h, descent };
 }
 
-async function applyFix() {
-  const byFile = new Map();
-  for (const b of report.checks) for (const fd of b.fields) for (const c of fd.cells) {
-    if (!c.inputId || !c.at) continue;
-    const v = $(c.inputId).value.trim();
-    if (!v || v === c.val) continue;
-    if (!byFile.has(c.at.fi)) byFile.set(c.at.fi, []);
-    byFile.get(c.at.fi).push({ ...c.at, v });
-  }
-  if (!byFile.size) { $("fixMsg").textContent = "ไม่มีช่องที่เปลี่ยนค่า"; return; }
+// write corrections onto the form files: byFile = Map(file index -> [{...where, v: new value}])
+async function writeFixes(byFile) {
   for (const [fi, fixes] of byFile) {
     const doc = await PDFLib.PDFDocument.load(pdfFiles[fi].bytes);
     const covers = readCovers(doc);
@@ -747,6 +748,34 @@ async function applyFix() {
     pdfFiles[fi] = { ...pdfFiles[fi], bytes };
     fixedFiles.set(fi, bytes);
   }
+}
+
+// dates on ใบเปิดตู้ / คำร้อง always follow the D/O: wrong ones are corrected without asking
+function dateFixes(checks) {
+  const byFile = new Map();
+  for (const b of checks || []) {
+    const fd = b.fields.find(x => x.key === "date");
+    if (!fd || !ymdOf(fd.doVal)) continue;
+    for (const c of fd.cells) {
+      if (c.ok !== false || !c.at) continue;
+      if (!byFile.has(c.at.fi)) byFile.set(c.at.fi, []);
+      byFile.get(c.at.fi).push({ ...c.at, v: suggest("date", fd.doVal, c.val) });
+    }
+  }
+  return byFile;
+}
+
+async function applyFix() {
+  const byFile = new Map();
+  for (const b of report.checks) for (const fd of b.fields) for (const c of fd.cells) {
+    if (!c.inputId || !c.at) continue;
+    const v = $(c.inputId).value.trim();
+    if (!v || v === c.val) continue;
+    if (!byFile.has(c.at.fi)) byFile.set(c.at.fi, []);
+    byFile.get(c.at.fi).push({ ...c.at, v });
+  }
+  if (!byFile.size) { $("fixMsg").textContent = "ไม่มีช่องที่เปลี่ยนค่า"; return; }
+  await writeFixes(byFile);
   $("fixMsg").textContent = "แก้แล้ว กำลังตรวจใหม่…";
   await run(true);
   $("fixMsg").textContent = "แก้แล้ว — บันทึกทับไฟล์เดิม หรือดาวน์โหลดไฟล์ที่แก้แล้ว";
@@ -774,7 +803,7 @@ $("saveFixed").onclick = saveFixed;
 // ---------- events ----------
 function update() { $("run").disabled = !pdfFiles.length; $("clear").disabled = !(pdfFiles.length || xlsFile || report); }
 function clearAll() {
-  pdfFiles = []; xlsFile = report = null; overrides = {}; fileWarn = ""; fixedFiles = new Map(); hidden.clear();
+  pdfFiles = []; xlsFile = report = null; overrides = {}; fileWarn = ""; autoNote = ""; fixedFiles = new Map(); hidden.clear();
   $("pdfText").innerHTML = $("xlsText").innerHTML = "ลากไฟล์มาวาง หรือ <b>คลิกเพื่อเลือกไฟล์</b>";
   $("filePdf").value = $("fileXls").value = $("demAll").value = $("recAll").value = "";
   $("search").value = ""; $("msg").textContent = "";

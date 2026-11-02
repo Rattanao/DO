@@ -238,11 +238,12 @@ def same(key, d, f):
     return norm(d) == norm(f)
 RE_COMPANY_END = re.compile(r"(CO\.?\s*,?\s*LTD\.?|LIMITED|LTD\.?|INC\.?|CORP(ORATION)?\.?|COMPANY|PCL\.?|PLC\.?)\s*$", re.I)
 
-def check_forms():
+def check_forms(date_fixes=None):
     out = []
     for di, d in enumerate(info):
         if d["kind"] != "do": continue
-        forms = [p for p in info if p["kind"] in ("open1", "open2") and p["bl"] == d["bl"]]
+        forms_i = [k for k, p in enumerate(info) if p["kind"] in ("open1", "open2") and p["bl"] == d["bl"]]
+        forms = [info[k] for k in forms_i]
         if not forms: continue
         # containers can be listed on the D/O's ATTACHED RIDER pages ("AS PER ATTACHED RIDER")
         rider_text, j = "", di + 1
@@ -258,7 +259,7 @@ def check_forms():
         rows_ = []
         for key, label in [("vessel", "ชื่อเรือ"), ("date", "วันที่เรือเข้า"), ("cntr", "CNTR"), ("cnee", "CNEE"), ("bl", "B/L NO."), ("status", "STATUS")]:
             cells = []
-            for f in forms:
+            for fk, f in zip(forms_i, forms):
                 L = f["lines"]
                 if key == "vessel":
                     v = next((m.group().strip() for l in L for m in [re.search(r"[A-Z][A-Z0-9.&\- ]*?\s+V\s*\.\s*[A-Z0-9]+", l["s"])] if m), None)
@@ -285,10 +286,28 @@ def check_forms():
                     v = next((m.group() for l in L for m in [RE_BL.search(l["s"])] if m), None)
                 else:
                     v = next((m.group() for l in L for m in [re.search(r"\b(FCL|LCL|CFS)\b(\s*\([^)]*\))?", l["s"])] if m), None)
-                cells.append((v, None if v is None else same(key, dof[key], v)))
+                ok = None if v is None else same(key, dof[key], v)
+                if key == "date" and ok is False and date_fixes is not None and ymd(dof["date"]):
+                    y, mo, dd = ymd(dof["date"]).split("-")
+                    date_fixes.append((fk, v, f"{int(dd)}-{MON3[int(mo) - 1].title()}-{y[2:]}"))
+                cells.append((v, ok))
             rows_.append((label, dof[key], cells))
         out.append((d["bl"], [("ใบเปิดตู้" if f["kind"] == "open1" else "คำร้อง") for f in forms], rows_))
     return out
+
+# dates on ใบเปิดตู้ / คำร้อง always follow the D/O: wrong ones are replaced in the output, then checked again
+fixes = []
+checks = check_forms(fixes)
+for k, old, new in fixes:
+    page = doc[order.index(k)]
+    rects = page.search_for(old)
+    for r in rects: page.add_redact_annot(r, fill=(1, 1, 1))
+    page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE)
+    for r in rects: page.insert_text((r.x0, r.y1 - r.height * 0.22), new, fontname="helv", fontsize=r.height * 0.75)
+    info[k]["text"] = info[k]["text"].replace(old, new)
+    for l in info[k]["lines"]: l["s"] = l["s"].replace(old, new)
+if fixes:
+    checks = check_forms()
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 doc.save(OUT, garbage=4, deflate=True)
@@ -300,8 +319,9 @@ prn.save(OUT_PRINT, garbage=4, deflate=True)
 for n, r in enumerate(report, 1): print(n, *r[1:], sep=" | ")
 print(f"\nไฟล์ปริ้น x2: {os.path.basename(OUT_PRINT)} ({len(prn)} หน้า)")
 
+if fixes:
+    print(f"\nแก้วันที่ใบเปิดตู้ / คำร้องตาม DO ให้อัตโนมัติแล้ว {len(fixes)} ช่อง: " + ", ".join(f"{o} -> {n}" for _, o, n in fixes))
 # only the B/Ls that need fixing are listed; matching ones are just counted
-checks = check_forms()
 need = [c for c in checks if any(cell[1] is False for _, _, cells in c[2] for cell in cells)]
 bad = 0
 for bl, heads, rows_ in need:

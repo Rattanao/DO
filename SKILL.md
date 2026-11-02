@@ -45,7 +45,9 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
 12. **ใบเปิดตู้ / คำร้อง check** against the D/O, every mismatch flagged. Only B/Ls that need fixing are listed
     (web table and script output); B/Ls that match on every field are only counted.
     - ชื่อเรือ: D/O "DONGJIN CONFIDENT 0153S" = form "DONGJIN CONFIDENT V.0153S" ("V." ignored)
-    - วันที่เรือเข้า: D/O `Vessel Arrival Date : 2026.11.04` = form `4-Nov-26` (both form pages)
+    - วันที่เรือเข้า: D/O `Vessel Arrival Date : 2026.11.04` = form `4-Nov-26` (both form pages). A wrong date is
+      **corrected automatically** to the D/O date (web: written onto the form file, save buttons appear; script:
+      replaced in DO-DEM.pdf with a real redaction) and reported as "แก้วันที่…ให้อัตโนมัติแล้ว N ช่อง".
     - CNTR (owner code + U/J/Z + 7 digits; the D/O side includes its ATTACHED RIDER pages), B/L NO.
     - CNEE: under the form's `CNEE:` label, **all its lines** (long names wrap: "THAI SAMSUNG ELECTRONICS" /
       "CO.,LTD."). Matches if equal, or if the D/O box only adds an address after a full company name.
