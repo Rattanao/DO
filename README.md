@@ -46,7 +46,7 @@
 เว็บมี 2 ขั้นต่อกัน เลือกจากเมนูด้านบน: **① CHECK DEM → ② DO**
 
 - **① CHECK DEM** (https://rattanao.github.io/DO/checkdem.html): ลากไฟล์ Freedays ใส่ ATA กด **คำนวณ** แล้วกด **ใช้กับ DO ต่อ →**
-  เว็บพาไปหน้า ② DO พร้อมใส่ CHECK DEM ให้แล้ว (หรือกดดาวน์โหลด CHECK DEM.xlsx ก็ได้)
+  **กดคำนวณเสร็จ CHECK DEM ถูกส่งไปหน้า ② DO ให้เองทันที** (หน้า DO ที่เปิดอยู่อีกแท็บจะรับและประมวลผลใหม่ให้เอง) หรือกดดาวน์โหลด CHECK DEM.xlsx ก็ได้
   — หน้านี้มาจาก [Check-dem](https://github.com/Rattanao/Check-dem) กฎคำนวณเหมือนกัน
 - **② DO** (https://rattanao.github.io/DO/): ทำตามขั้นตอนด้านล่าง
 

@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-03a</footer>
+<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-03b</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -885,20 +885,21 @@ $("chips").onclick = e => {
 };
 $("tbody").onclick = e => { const tr = e.target.closest("tr"); if (tr && e.target.tagName !== "INPUT") preview(+tr.dataset.p); };
 // new job = empty form: the browser must not bring back dates from the last visit (reload / back button)
-addEventListener("pageshow", () => {
-  clearAll(); $("size").value = "15.5";
-  // coming from step 1 (CHECK DEM page): its workbook is already here
-  try {
-    const got = JSON.parse(sessionStorage.getItem("doCheckDem") || "null");
-    if (got) {
-      sessionStorage.removeItem("doCheckDem");
-      xlsFile = { name: got.name, bytes: Uint8Array.from(atob(got.b64), c => c.charCodeAt(0)) };
-      $("xlsText").innerHTML = `<b>${escapeHtml(got.name)}</b> (จากหน้า CHECK DEM)`;
-      $("msg").textContent = "รับ CHECK DEM จากขั้นที่ 1 แล้ว — ใส่ไฟล์ DO / ATTACHED / ใบเปิดตู้ ต่อได้เลย";
-      update();
-    }
-  } catch { }
-});
+// step 1 → step 2: the CHECK DEM page sends every finished result here by itself (localStorage "doCheckDem").
+// Taken once (then removed); results older than 12 hours are ignored. If DO files are already in, they are redone.
+async function takeCheckDem() {
+  let got = null;
+  try { got = JSON.parse(localStorage.getItem("doCheckDem") || "null"); localStorage.removeItem("doCheckDem"); } catch { }
+  if (!got || !got.b64 || Date.now() - (got.at || 0) > 12 * 3600e3) return;
+  xlsFile = { name: got.name, bytes: Uint8Array.from(atob(got.b64), c => c.charCodeAt(0)) };
+  const when = new Date(got.at).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+  $("xlsText").innerHTML = `<b>${escapeHtml(got.name)}</b> (จากหน้า CHECK DEM ${when} น.${got.bls ? ` · ${got.bls} B/L` : ""})`;
+  update();
+  if (pdfFiles.length) { await run(true); $("msg").textContent = ["ได้ CHECK DEM ใหม่จากขั้นที่ 1 — ประมวลผลใหม่แล้ว", $("msg").textContent].filter(Boolean).join(" · "); }
+  else $("msg").textContent = "ได้ CHECK DEM จากขั้นที่ 1 แล้ว — ใส่ไฟล์ DO / ATTACHED / ใบเปิดตู้ ต่อได้เลย";
+}
+addEventListener("pageshow", () => { clearAll(); $("size").value = "15.5"; takeCheckDem(); });
+addEventListener("storage", e => { if (e.key === "doCheckDem" && e.newValue) takeCheckDem(); });   // DO page already open in another tab
 </script>
 </body>
 </html>

@@ -92,5 +92,6 @@ For layout changes (size, position, underline) edit `scripts/fill_do.py` and `in
 
 The web site has two steps (menu at the top): `checkdem.html` (① CHECK DEM, a copy of
 https://github.com/Rattanao/Check-dem's page) and `index.html` (② DO). "ใช้กับ DO ต่อ →" passes the CHECK DEM
-workbook to the DO page through sessionStorage (`doCheckDem`); a reload starts the DO page empty.
+workbook to the DO page by itself as soon as it is calculated (localStorage `doCheckDem`, taken once, ignored after
+12 h); a DO page already open in another tab takes it at once and re-processes its D/O files.
 If the Check-dem rules change, copy its page again and keep the menu, buildXlsx() and the hand-off button.

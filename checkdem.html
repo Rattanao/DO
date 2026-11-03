@@ -352,17 +352,24 @@ drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
 drop.ondragleave = () => drop.classList.remove("over");
 drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]); };
 $("ata").oninput = update;
-$("run").onclick = compute;
 $("search").oninput = render;
 $("download").onclick = download;
-// hand-off to step 2: the CHECK DEM workbook goes to the DO page in this tab (sessionStorage), no download / upload
-$("toDo").onclick = async () => {
+// hand-off to step 2: every finished CHECK DEM is sent to the DO page by itself (localStorage "doCheckDem",
+// read by the DO page when it opens, or at once by a DO page already open in another tab); no download / upload
+async function sendToDo() {
   const buf = new Uint8Array(await buildXlsx());
   let b64 = ""; for (let i = 0; i < buf.length; i += 0x8000) b64 += String.fromCharCode(...buf.subarray(i, i + 0x8000));
-  try { sessionStorage.setItem("doCheckDem", JSON.stringify({ name: OUTPUT_NAME, b64: btoa(b64) })); }
-  catch { $("msg").textContent = "ส่งต่อไม่ได้ในเบราว์เซอร์นี้ — ดาวน์โหลด CHECK DEM.xlsx แล้วใส่ในหน้า DO แทน"; return; }
-  location.href = "./";
-};
+  try {
+    localStorage.setItem("doCheckDem", JSON.stringify({ name: OUTPUT_NAME, b64: btoa(b64), at: Date.now(), bls: report.data.length }));
+    $("msg").innerHTML = `<span style="color:#006100">✓ ส่ง CHECK DEM (${report.data.length} B/L) ไปหน้า ② DO แล้ว — เปิดหน้า DO ได้เลย</span>`;
+    return true;
+  } catch {
+    $("msg").textContent = "ส่งต่อไม่ได้ในเบราว์เซอร์นี้ — ดาวน์โหลด CHECK DEM.xlsx แล้วใส่ในหน้า DO แทน";
+    return false;
+  }
+}
+$("run").onclick = async () => { compute(); await sendToDo(); };
+$("toDo").onclick = async () => { if (await sendToDo()) location.href = "./"; };
 $("chips").onclick = e => {
   const k = e.target.closest(".chip")?.dataset.k; if (!k) return;
   hidden.has(k) ? hidden.delete(k) : hidden.add(k); render();
