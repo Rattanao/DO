@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -72,29 +72,30 @@
 </style>
 </head>
 <body>
-<header><div class="wrap"><div class="brand"><img class="logo" src="assets/hal-logo.png" alt="Heung A Line"><h1>CHECK DEM</h1></div><p>หาวันเริ่มเก็บค่า DEM และวัน REC. จาก Freedays + ATA</p>
+<header><div class="wrap"><div class="brand"><img class="logo" src="assets/hal-logo.png" alt="Heung A Line"><h1>CHECK DEM</h1></div><p>DEM start date and REC. date from Freedays + ATA</p>
   <div class="credit">Project by Ms. Rattana Mudlae<br>Position Import DOC.</div></div></header>
-<nav class="stepnav"><div class="wrap"><a href="checkdem.html" class="on">① CHECK DEM</a><span>→</span><a href="./">② DO</a><span style="margin-left:auto"></span><a href="guide.html">คู่มือ</a></div></nav>
+<nav class="stepnav"><div class="wrap"><a href="checkdem.html" class="on">① CHECK DEM</a><span>→</span><a href="./">② DO</a><span style="margin-left:auto"></span><a href="guide.html">Guide</a></div></nav>
 
 <main class="wrap">
   <section class="card">
     <div class="inputs">
       <div>
-        <label class="t">ไฟล์ Freedays (.xls / .xlsx)</label>
-        <div class="drop" id="drop"><span id="dropText">ลากไฟล์มาวาง หรือ <b>คลิกเพื่อเลือกไฟล์</b></span></div>
+        <label class="t">Freedays file (.xls / .xlsx)</label>
+        <div class="drop" id="drop"><span id="dropText">Drop a file here or <b>click to choose</b></span></div>
         <input type="file" id="file" accept=".xls,.xlsx" class="hidden">
       </div>
       <div>
         <label class="t" for="ata">ATA</label>
         <input type="date" id="ata">
       </div>
-      <button id="run" disabled>คำนวณ</button>
+      <button id="run" disabled>Calculate</button>
     </div>
     <p class="rules">
-      <b>TOTAL</b> = เลขตัวหน้า + เลขตัวหน้าหลัง Add (<code>7/5 Add 7/9</code> = 14) ·
+      <b>TOTAL</b> = first number + first number after Add (<code>7/5 Add 7/9</code> = 14) ·
       <b>DEM.</b> = ATA + TOTAL ·
-      <b>REC.</b> = ATA + 3 วัน เฉพาะแถวที่มี <code>TOS</code><br>
-      ไฟล์ถูกประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการอัปโหลดไปที่ใด
+      <b>REC.</b> = ATA + 3 days, only on rows with <code>TOS</code> or a reefer TPSZ<br>
+      The result goes to step ② DO by itself once calculated.<br>
+      Files are processed in your browser only — nothing is uploaded.
     </p>
     <div class="msg" id="msg"></div>
   </section>
@@ -103,14 +104,14 @@
     <div class="info" id="info"></div>
     <div class="chips" id="chips"></div>
     <div class="toolbar">
-      <input type="search" id="search" placeholder="ค้นหา B/L No. / Consignee / Freedays">
-      <button id="download">ดาวน์โหลด CHECK DEM.xlsx</button>
-      <button id="toDo">ใช้กับ DO ต่อ →</button>
+      <input type="search" id="search" placeholder="Search B/L No. / Consignee / Freedays">
+      <button id="download">Download CHECK DEM.xlsx</button>
+      <button id="toDo">Go to DO →</button>
     </div>
     <div class="tbl"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
   </section>
 </main>
-<footer><a href="guide.html">คู่มือ</a> · CHECK DEM จาก <a href="https://github.com/Rattanao/Check-dem">github.com/Rattanao/Check-dem</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a></footer>
+<footer><a href="guide.html">Guide</a> · CHECK DEM from <a href="https://github.com/Rattanao/Check-dem">github.com/Rattanao/Check-dem</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a></footer>
 
 <script>
 const TOS_EXTRA_DAYS = 3;
@@ -164,7 +165,7 @@ function loadFile(file) {
       const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" });
       // header row = first row that has a Freedays heading (not necessarily row 1)
       const hRow = aoa.slice(0, 30).findIndex(r => r.some(h => FREEDAYS.test(String(h))));
-      if (hRow < 0) throw new Error("ไม่พบหัวข้อ Freedays ในไฟล์");
+      if (hRow < 0) throw new Error("No Freedays heading in the file");
       const head = aoa[hRow].map(h => String(h).trim());
       const cFree = head.findIndex(h => FREEDAYS.test(h));
       const fields = FIELDS.map(([name, re]) => [name, head.findIndex(h => re.test(h))]).filter(f => f[1] >= 0);
@@ -172,10 +173,10 @@ function loadFile(file) {
       const rows = aoa.slice(hRow + 1).filter(r => r.some(v => String(v).trim() !== ""))
         .map(r => [r[cFree], ...fields.map(f => r[f[1]])].map(v => String(v ?? "").trim()));
       src = { name: file.name, header, rows };
-      $("dropText").innerHTML = `<b>${escapeHtml(file.name)}</b> · ${rows.length} B/L (คลิกเพื่อเปลี่ยนไฟล์)`;
+      $("dropText").innerHTML = `<b>${escapeHtml(file.name)}</b> · ${rows.length} B/L (click to change)`;
       update();
     } catch (err) {
-      src = null; $("msg").textContent = "อ่านไฟล์ไม่ได้: " + err.message; update();
+      src = null; $("msg").textContent = "Cannot read the file: " + err.message; update();
     }
   };
   reader.readAsArrayBuffer(file);
@@ -211,16 +212,16 @@ function render() {
   const { ata, data, colors, header, name } = report;
   const bad = data.filter(x => !x.dem).length;
   $("info").innerHTML =
-    `<div class="k">ต้นฉบับ</div><div>${escapeHtml(name)}</div>` +
+    `<div class="k">Source</div><div>${escapeHtml(name)}</div>` +
     `<div class="k">ATA</div><div class="ata">${dmy(ata)}</div>` +
-    `<div class="k">จำนวน B/L</div><div>${data.length}</div>` +
-    `<div class="k">มี TOS</div><div>${data.filter(x => x.rec).length}</div>` +
-    (bad ? `<div class="k" style="color:var(--red)">อ่านไม่ได้</div><div style="color:var(--red);font-weight:700">${bad}</div>` : "");
+    `<div class="k">B/Ls</div><div>${data.length}</div>` +
+    `<div class="k">With REC.</div><div>${data.filter(x => x.rec).length}</div>` +
+    (bad ? `<div class="k" style="color:var(--red)">Unreadable</div><div style="color:var(--red);font-weight:700">${bad}</div>` : "");
 
   const counts = {};
   data.forEach(x => { if (x.dem) counts[ymd(x.dem)] = (counts[ymd(x.dem)] || 0) + 1; });
   $("chips").innerHTML = Object.keys(counts).sort().map(k =>
-    `<span class="chip ${hidden.has(k) ? "off" : ""}" data-k="${k}" style="background:#${colors[k]}" title="คลิกเพื่อซ่อน/แสดง">DEM ${k.split("-").reverse().join("/")}<small>${counts[k]} B/L</small></span>`).join("");
+    `<span class="chip ${hidden.has(k) ? "off" : ""}" data-k="${k}" style="background:#${colors[k]}" title="Click to hide / show">DEM ${k.split("-").reverse().join("/")}<small>${counts[k]} B/L</small></span>`).join("");
 
   $("thead").innerHTML = "<tr>" + header.map(h => `<th>${escapeHtml(h)}</th>`).join("") + "</tr>";
   const q = $("search").value.trim().toLowerCase();
@@ -264,12 +265,12 @@ async function buildXlsx() {
   t.fill = fill(NAVY); t.alignment = center; ws.getRow(1).height = 30;
 
   // info row: count at the left | source under Freedays-DEM. | ATA in the last two columns
-  const info = [["จำนวน B/L", data.length, 1], ["ต้นฉบับ", name, 4 + report.off], ["ATA", new Date(ata), ncol - 1]];
+  const info = [["B/Ls", data.length, 1], ["Source", name, 4 + report.off], ["ATA", new Date(ata), ncol - 1]];
   for (let col = 1; col <= ncol; col++) ws.getCell(2, col).border = box;
   info.forEach(([k, v, col]) => {
     const a = ws.getCell(2, col), b = ws.getCell(2, col + 1);
     a.value = k; a.font = { name: FONT, bold: true }; a.fill = fill("BDD7EE"); a.alignment = center;
-    b.value = v; b.font = { name: FONT, bold: k !== "จำนวน B/L", size: k === "ATA" ? 12 : 10 };
+    b.value = v; b.font = { name: FONT, bold: k !== "B/Ls", size: k === "ATA" ? 12 : 10 };
     b.fill = fill("DDEBF7"); b.alignment = center;
     if (k === "ATA") b.numFmt = "DD/MM/YYYY";
   });
@@ -361,10 +362,10 @@ async function sendToDo() {
   let b64 = ""; for (let i = 0; i < buf.length; i += 0x8000) b64 += String.fromCharCode(...buf.subarray(i, i + 0x8000));
   try {
     localStorage.setItem("doCheckDem", JSON.stringify({ name: OUTPUT_NAME, b64: btoa(b64), at: Date.now(), bls: report.data.length }));
-    $("msg").innerHTML = `<span style="color:#006100">✓ ส่ง CHECK DEM (${report.data.length} B/L) ไปหน้า ② DO แล้ว — เปิดหน้า DO ได้เลย</span>`;
+    $("msg").innerHTML = `<span style="color:#006100">✓ CHECK DEM (${report.data.length} B/L) sent to ② DO — open the DO page</span>`;
     return true;
   } catch {
-    $("msg").textContent = "ส่งต่อไม่ได้ในเบราว์เซอร์นี้ — ดาวน์โหลด CHECK DEM.xlsx แล้วใส่ในหน้า DO แทน";
+    $("msg").textContent = "This browser cannot pass it on — download CHECK DEM.xlsx and drop it on the DO page";
     return false;
   }
 }

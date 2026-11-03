@@ -123,188 +123,225 @@ table.trouble { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
 footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
 @media (max-width: 480px) { section.panel { padding: 18px; } .wrap { padding-inline: 16px; } .by { text-align: left; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.topright { display: grid; gap: 6px; justify-items: end; }
+.langs { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.langs button { font: inherit; font-size: 0.85rem; border: 0; background: var(--paper); color: var(--ink); padding: 4px 14px; cursor: pointer; }
+.langs button.on { background: var(--navy); color: var(--navy-ink); }
+html[data-lang="th"] .en, html[data-lang="en"] .th { display: none; }
+@media (max-width: 480px) { .topright { justify-items: start; } }
 </style>
 </head>
 <body>
-
 <div class="wrap">
   <header class="head">
     <div class="top">
       <div class="brand"><img src="assets/hal-logo.png" alt="Heung A Line"></div>
-      <p class="by">Project by Ms. Rattana Mudlae<br>Position Import DOC.</p>
+      <div class="topright">
+        <div class="langs" role="group" aria-label="Language">
+          <button type="button" data-lang="th">ไทย</button><button type="button" data-lang="en">English</button>
+        </div>
+        <p class="by">Project by Ms. Rattana Mudlae<br>Position Import DOC.</p>
+      </div>
     </div>
-    <div class="tag">เครื่องมือ D/O ขาเข้า · เติมวันเริ่มเก็บค่า DEM / ค่าไฟ</div>
+    <div class="tag"><span class="th">เครื่องมือ D/O ขาเข้า · CHECK DEM → DO</span><span class="en">Import D/O tools · CHECK DEM → DO</span></div>
     <h1>DO</h1>
-    <p class="lede">เติมวันเริ่มเก็บค่า DEM วันเริ่มเก็บค่าไฟ และ SPECIAL CONTAINER ลงท้ายใบ Cargo Delivery Order ทุกหน้าในครั้งเดียว ดึงวันที่จาก CHECK DEM หรือพิมพ์เอง แล้วได้ไฟล์พร้อมปริ้น 2 ชุด</p>
-    <div class="flow" aria-label="ขั้นตอนการทำงาน">
+    <p class="lede">
+      <span class="th">คำนวณวันเริ่มเก็บค่า DEM จาก Freedays แล้วเติมวันเริ่มเก็บค่า DEM วันเริ่มเก็บค่าไฟ และ SPECIAL CONTAINER ลงท้ายใบ Cargo Delivery Order ทุกหน้าในครั้งเดียว รวมกับ ATTACHED และใบเปิดตู้ ตรวจใบเปิดตู้เทียบกับ DO แล้วได้ไฟล์พร้อมปริ้น 2 ชุด</span>
+      <span class="en">Work out the DEM start dates from Freedays, then write the DEM / reefer-power / SPECIAL CONTAINER notes on every Cargo Delivery Order page in one go, merge them with the ATTACHED sheets and container-opening forms, check those forms against the D/O, and get a file ready to print twice.</span>
+    </p>
+    <div class="flow" aria-label="Flow">
       <span class="doc">Freedays.xls + ATA</span><span class="op">→ ① CHECK DEM →</span>
-      <span class="doc">DO.pdf</span><span class="op">+</span>
-      <span class="doc">CHECK DEM.xlsx</span><span class="op">→ ② DO →</span>
+      <span class="doc">DO / ATTACHED / <span class="th">ใบเปิดตู้</span><span class="en">opening form</span> .pdf</span><span class="op">→ ② DO →</span>
       <span class="out">DO-DEM.pdf</span><span class="op">+</span>
       <span class="out">DO-DEM-PRINT x 2.pdf</span>
     </div>
     <div class="cta">
-      <a class="btn primary" href="checkdem.html">① CHECK DEM ออนไลน์</a>
-      <a class="btn primary" href="./">② DO ออนไลน์</a>
-      <a class="btn ghost" href="https://github.com/Rattanao/DO/archive/refs/heads/main.zip">ดาวน์โหลดโปรแกรม (ZIP)</a>
-      <a class="btn ghost" href="https://github.com/Rattanao/DO">เปิดหน้า GitHub</a>
+      <a class="btn primary" href="checkdem.html"><span class="th">① CHECK DEM ออนไลน์</span><span class="en">① CHECK DEM online</span></a>
+      <a class="btn primary" href="./"><span class="th">② DO ออนไลน์</span><span class="en">② DO online</span></a>
+      <a class="btn ghost" href="https://github.com/Rattanao/DO/archive/refs/heads/main.zip"><span class="th">ดาวน์โหลดโปรแกรม (ZIP)</span><span class="en">Download program (ZIP)</span></a>
+      <a class="btn ghost" href="https://github.com/Rattanao/DO"><span class="th">เปิดหน้า GitHub</span><span class="en">Open GitHub</span></a>
     </div>
   </header>
 
   <section class="panel" id="online">
-    <h2>ใช้งานออนไลน์</h2>
-    <p class="sub">ไม่ต้องติดตั้งอะไร ไฟล์ประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้อยู่ ไม่มีการอัปโหลดไปที่ใด</p>
+    <h2><span class="th">ใช้งานออนไลน์</span><span class="en">Use it online</span></h2>
+    <p class="sub"><span class="th">ไม่ต้องติดตั้งอะไร ไฟล์ประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้อยู่ ไม่มีการอัปโหลดไปที่ใด หน้าเว็บเป็นภาษาอังกฤษ</span><span class="en">Nothing to install. Files are processed in your browser only; nothing is uploaded.</span></p>
     <ol class="steps">
       <li><div>
-        <p><b>① CHECK DEM</b> (เมนูด้านบนของเว็บ): ลากไฟล์ Freedays (.xls / .xlsx) ใส่วันที่ ATA แล้วกด <b>คำนวณ</b></p>
-        <p class="note">คำนวณเสร็จ ผลถูกส่งไปหน้า ② DO ให้เองทันที ไม่ต้องดาวน์โหลดแล้วใส่ใหม่ — กด <b>ใช้กับ DO ต่อ →</b> เพื่อไปหน้า DO (ถ้าเปิดหน้า DO ไว้อีกแท็บ จะรับและประมวลผลใหม่ให้เอง)</p>
+        <p><span class="th"><b>① CHECK DEM</b> (เมนูด้านบนของเว็บ): ลากไฟล์ Freedays (.xls / .xlsx) ใส่วันที่ ATA แล้วกด <b>Calculate</b></span>
+           <span class="en"><b>① CHECK DEM</b> (menu at the top): drop the Freedays file (.xls / .xlsx), enter the ATA and press <b>Calculate</b></span></p>
+        <p class="note"><span class="th">คำนวณเสร็จ ผลถูกส่งไปหน้า ② DO ให้เองทันที ไม่ต้องดาวน์โหลดแล้วใส่ใหม่ — กด <b>Go to DO →</b> เพื่อไปหน้า DO (ถ้าเปิดหน้า DO ไว้อีกแท็บ จะรับและประมวลผลใหม่ให้เอง) หรือกด <b>Download CHECK DEM.xlsx</b> เก็บไว้ก็ได้</span>
+           <span class="en">The result goes to ② DO by itself — no download / upload. Press <b>Go to DO →</b> to open it (a DO tab already open takes it and processes again). <b>Download CHECK DEM.xlsx</b> if you want to keep the file.</span></p>
       </div></li>
       <li><div>
-        <p><b>② DO: ลากไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) มาวาง</b> ใส่ได้หลายไฟล์ ลำดับไหนก็ได้ เว็บรวมทีละ B/L เรียง DO → ATTACHED → ใบเปิดตู้ → คำร้อง</p>
-        <p class="note">ไฟล์ <code>CHECK DEM.xlsx</code> ใส่หรือไม่ใส่ก็ได้ ถ้าไม่ใส่ ให้เติมช่อง <b>DEM. วันที่</b> และ/หรือ <b>ค่าไฟ วันที่</b> เอง</p>
+        <p><span class="th"><b>② DO: ลากไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) มาวาง</b> ใส่ได้หลายไฟล์ ลำดับไหนก็ได้ เว็บรวมทีละ B/L เรียง DO → ATTACHED → ใบเปิดตู้ → คำร้อง</span>
+           <span class="en"><b>② DO: drop the DO / ATTACHED / container-opening form files (.pdf)</b> — several files in any order; each B/L is merged as DO → ATTACHED → opening form → removal request</span></p>
+        <p class="note"><span class="th">ไม่มี CHECK DEM ก็ได้ ให้เติมช่อง <b>DEM. date</b> และ/หรือ <b>Reefer power date</b> เอง</span>
+           <span class="en">No CHECK DEM? Type the <b>DEM. date</b> and/or <b>Reefer power date</b> instead.</span></p>
       </div></li>
       <li><div>
-        <p><b>กด ประมวลผล</b></p>
-        <p class="note">ตารางบอกทีละหน้าว่าเติมอะไร ช่องวันที่สีแดง = ยังไม่มีวันที่ แก้ทีละ B/L ในตารางได้ แล้วกดประมวลผลอีกครั้ง</p>
+        <p><span class="th"><b>กด Process</b></span><span class="en"><b>Press Process</b></span></p>
+        <p class="note"><span class="th">ตารางบอกทีละหน้าว่าเติมอะไร ช่องวันที่สีแดง = ยังไม่มีวันที่ แก้ทีละ B/L ในตารางได้ แล้วกด Process อีกครั้ง</span>
+           <span class="en">The table shows what was written on each page. A red date cell = no date yet; change one B/L in the table and press Process again.</span></p>
       </div></li>
       <li><div>
-        <p><b>กด ดาวน์โหลด DO-DEM.pdf (x1 + x2)</b> หรือ <b>ปริ้น x2</b></p>
-        <p class="note">ได้ 2 ไฟล์ <code>DO-DEM.pdf</code> (ชุดเดียว) และ <code>DO-DEM-PRINT x 2.pdf</code> (เรียงตามลำดับปริ้น) ครั้งแรกเบราว์เซอร์อาจถามว่า “อนุญาตให้ดาวน์โหลดหลายไฟล์” ให้กดอนุญาต</p>
-      </div></li>
-    </ol>
-  </section>
-
-  <section class="panel" id="install">
-    <h2>ติดตั้งครั้งแรก</h2>
-    <p class="sub">ทำครั้งเดียวต่อเครื่อง ใช้ Windows (ถ้าใช้แบบออนไลน์ ข้ามส่วนนี้ได้เลย)</p>
-    <ol class="steps">
-      <li><div>
-        <p><b>ติดตั้ง Python 3</b> จาก <a href="https://www.python.org/downloads/">python.org/downloads</a></p>
-        <p class="note">หน้าแรกของตัวติดตั้ง <span class="warn">ติ๊ก ☑ Add python.exe to PATH</span> ก่อนกด Install Now</p>
-      </div></li>
-      <li><div>
-        <p><b>ดาวน์โหลดโปรแกรม</b> กดปุ่ม “ดาวน์โหลดโปรแกรม (ZIP)” ด้านบน</p>
-        <p class="note">คลิกขวาที่ไฟล์ ZIP → Extract All แล้วเก็บโฟลเดอร์ไว้ที่ไหนก็ได้ เช่น Documents</p>
-      </div></li>
-      <li><div>
-        <p><b>รันครั้งแรกต้องต่ออินเทอร์เน็ต</b></p>
-        <p class="note">โปรแกรมจะติดตั้งไลบรารีที่ต้องใช้ (pymupdf, openpyxl) ให้เองอัตโนมัติ ใช้ฟอนต์ Angsana New ที่มากับ Windows</p>
-      </div></li>
-    </ol>
-  </section>
-
-  <section class="panel" id="use">
-    <h2>ใช้งานทุกครั้ง (โปรแกรมในเครื่อง)</h2>
-    <ol class="steps">
-      <li><div>
-        <p><b>วางไฟล์ในโฟลเดอร์ <code>input</code></b></p>
-        <p class="note">ไฟล์ D/O (และ ATTACHED / ใบเปิดตู้ ถ้ามี) และไฟล์ <code>CHECK DEM.xlsx</code> (จาก <a href="https://github.com/Rattanao/Check-dem">Check-dem</a>)</p>
-      </div></li>
-      <li><div>
-        <p><b>ดับเบิลคลิก <code>run-do.bat</code></b></p>
-        <p class="note">หน้าจอดำจะแสดงทีละหน้าว่าเติมอะไร หน้าที่ไม่มีวันที่จะขึ้นว่า <code>** ไม่มีวันที่ DEM ใน CHECK DEM **</code></p>
-      </div></li>
-      <li><div>
-        <p><b>เปิดผลที่ <code>output\DO-DEM.pdf</code> และ <code>output\DO-DEM-PRINT x 2.pdf</code></b></p>
-        <p class="note">ไฟล์ใน <code>input</code> ไม่ถูกแก้ ถ้าเปิดไฟล์ผลค้างไว้ ต้องปิดก่อนรันใหม่</p>
+        <p><span class="th"><b>กด Download DO-DEM.pdf (x1 + x2)</b> หรือ <b>Print x2</b></span><span class="en"><b>Press Download DO-DEM.pdf (x1 + x2)</b> or <b>Print x2</b></span></p>
+        <p class="note"><span class="th">ได้ 2 ไฟล์ <code>DO-DEM.pdf</code> (ชุดเดียว) และ <code>DO-DEM-PRINT x 2.pdf</code> (เรียงตามลำดับปริ้น) ครั้งแรกเบราว์เซอร์อาจถามว่า “อนุญาตให้ดาวน์โหลดหลายไฟล์” ให้กดอนุญาต</span>
+           <span class="en">You get <code>DO-DEM.pdf</code> (one set) and <code>DO-DEM-PRINT x 2.pdf</code> (print order). The first time the browser may ask to allow multiple downloads — allow it.</span></p>
       </div></li>
     </ol>
   </section>
 
   <section class="panel" id="openform">
-    <h2>ตรวจใบเปิดตู้ / คำร้อง</h2>
-    <p class="sub">ใส่ใบเปิดตู้มาพร้อม DO เว็บจะเทียบให้ทันที แสดงเฉพาะ B/L ที่ต้องแก้ ช่องที่ไม่ตรงขึ้นสีแดง และมีคำเตือนด้านบนของหน้า</p>
+    <h2><span class="th">ตรวจใบเปิดตู้ / คำร้อง</span><span class="en">Container-opening form / removal request check</span></h2>
+    <p class="sub"><span class="th">ใส่ใบเปิดตู้มาพร้อม DO เว็บเทียบให้ทันที แสดงเฉพาะ B/L ที่ต้องแก้ ช่องที่ไม่ตรงขึ้นสีแดง และมีคำเตือนด้านบนของหน้า</span>
+       <span class="en">Drop the forms together with the DO and they are checked at once. Only B/Ls that need a correction are listed; wrong fields are red and a warning shows at the top.</span></p>
     <ul class="check-list">
-      <li>เทียบ <b>ชื่อเรือ</b> (ไม่นับ “V.”), <b>วันที่เรือเข้า</b> (DO 2026.11.04 = ใบเปิด 4-Nov-26 — ถ้าไม่ตรง แก้ตาม DO ให้อัตโนมัติ), <b>CNTR</b>, <b>CNEE</b>, <b>B/L NO.</b>, <b>STATUS</b></li>
-      <li>STATUS: FCL = CY/CY หรือ CFS/CY · CFS = เปิดตู้ · LCL = ขนส่ง (เขียนต่อด้วยภาษาไทยได้ เช่น <code>LCL (ขนส่งแรงงาน-เรือ)</code>)</li>
-      <li>แก้ค่าในช่องสีแดง แล้วกด <b>แก้ไขใบเปิดตู้ตามช่องที่แก้</b> → ตรวจซ้ำเป็นสีเขียว</li>
-      <li><b>บันทึกทับไฟล์เดิม</b> (Chrome / Edge) หรือ <b>ดาวน์โหลดใบเปิดที่แก้แล้ว</b></li>
+      <li><span class="th">เทียบ <b>ชื่อเรือ</b> (ไม่นับ “V.”), <b>วันที่เรือเข้า</b>, <b>CNTR</b> (รวมตู้ในหน้า ATTACHED RIDER), <b>CNEE</b> (ชื่อยาวที่ขึ้นบรรทัด 2 ได้), <b>B/L NO.</b>, <b>STATUS</b></span>
+          <span class="en">Compared: <b>vessel</b> (“V.” ignored), <b>arrival date</b>, <b>CNTR</b> (incl. ATTACHED RIDER pages), <b>CNEE</b> (names wrapping onto a 2nd line are fine), <b>B/L NO.</b>, <b>STATUS</b></span></li>
+      <li><span class="th"><b>วันที่เรือเข้าที่ไม่ตรง แก้ตาม DO ให้อัตโนมัติ</b> (DO 2026.11.04 → ใบเปิด 4-Nov-26)</span>
+          <span class="en"><b>A wrong arrival date is corrected to the D/O's automatically</b> (DO 2026.11.04 → form 4-Nov-26)</span></li>
+      <li><span class="th">STATUS: FCL = CY/CY หรือ CFS/CY · CFS = เปิดตู้ · LCL = ขนส่ง (เขียนต่อด้วยภาษาไทยได้ เช่น <code>LCL (ขนส่งแรงงาน-เรือ)</code>)</span>
+          <span class="en">STATUS: FCL = CY/CY or CFS/CY · CFS = devanning · LCL = transport (Thai after it is fine, e.g. <code>LCL (ขนส่งแรงงาน-เรือ)</code>)</span></li>
+      <li><span class="th">แก้ค่าในช่องสีแดง แล้วกด <b>Correct the form with these values</b> → ตรวจซ้ำเป็นสีเขียว</span>
+          <span class="en">Edit the red cells and press <b>Correct the form with these values</b> → it is checked again and turns green</span></li>
+      <li><span class="th"><b>Save over the original file</b> (Chrome / Edge) หรือ <b>Download corrected form</b></span>
+          <span class="en"><b>Save over the original file</b> (Chrome / Edge) or <b>Download corrected form</b></span></li>
     </ul>
   </section>
 
   <section class="panel" id="rules">
-    <h2>เติมอะไรบ้าง</h2>
-    <p class="sub">หนึ่งหน้าต่อหนึ่ง B/L ตัวหนังสือ Angsana New ตัวหนา มุมล่างซ้ายของใบ D/O ขีดเส้นใต้เฉพาะวันที่</p>
+    <h2><span class="th">เติมอะไรบ้าง</span><span class="en">What is written on the D/O</span></h2>
+    <p class="sub"><span class="th">หนึ่งหน้าต่อหนึ่ง B/L ตัวหนังสือ Angsana New ตัวหนา มุมล่างซ้ายของใบ D/O ขีดเส้นใต้เฉพาะวันที่ (ข้อความบนเอกสารเป็นภาษาไทยเสมอ)</span>
+       <span class="en">One page per B/L, Angsana New bold, bottom-left of the D/O, only the date underlined. The notes on the document stay in Thai.</span></p>
     <div class="sheet-scroll">
       <table class="sheet">
-        <thead><tr><th>แบบ</th><th>เห็นอะไรในใบ D/O</th><th>ข้อความที่เติม</th></tr></thead>
+        <thead><tr><th><span class="th">แบบ</span><span class="en">Type</span></th><th><span class="th">เห็นอะไรในใบ D/O</span><span class="en">Seen on the D/O</span></th><th><span class="th">ข้อความที่เติม</span><span class="en">Note written</span></th></tr></thead>
         <tbody>
-          <tr class="b"><td>ทั่วไป</td><td>ทุกใบ</td><td class="thai">เริ่มเก็บค่า DEM. วันที่. <u>26-OCT-2026</u></td></tr>
-          <tr class="o"><td>DG</td><td class="mono">UN 3077 / CLASS 9 / CL9</td><td class="thai">SPECIAL CONTAINER · .......DG..........OP..........FR · บรรทัด DEM</td></tr>
+          <tr class="b"><td>GENERAL</td><td><span class="th">ทุกใบ</span><span class="en">every D/O</span></td><td class="thai">เริ่มเก็บค่า DEM. วันที่. <u>26-OCT-2026</u></td></tr>
+          <tr class="o"><td>DG</td><td class="mono">UN 3077 / CLASS 9 / CL9</td><td class="thai">SPECIAL CONTAINER · .......DG..........OP..........FR · <span class="th">บรรทัด DEM</span><span class="en">DEM line</span></td></tr>
           <tr class="g"><td>REEFER</td><td class="mono">20RF / 40RH / TEMP</td><td class="thai">เริ่มเก็บค่าไฟวันที่ <u>15-OCT-2026</u> · เริ่มเก็บค่า DEM. วันที่. <u>22-OCT-2026</u></td></tr>
-          <tr class="r"><td>ISO TANK + DG</td><td class="mono">ISO TANK และ UN / CLASS</td><td class="thai">SPECIAL CONTAINER · .......DG..........OP..........FR เท่านั้น</td></tr>
-          <tr class="e"><td>CFS SPLIT</td><td class="mono">CFS/CFS + House B/L A, B, C…</td><td class="thai">ไม่เติมบรรทัด DEM</td></tr>
-          <tr class="b"><td>CFS เดี่ยว</td><td class="mono">CFS/CFS ไม่ SPLIT</td><td class="thai">เติม DEM และอย่างอื่นเหมือน CY</td></tr>
-          <tr class="e"><td>ATTACHED RIDER</td><td class="mono">== ATTACHED RIDER ==</td><td class="thai">ไม่เติม (หน้า 2 ของ B/L)</td></tr>
+          <tr class="r"><td>ISO TANK + DG</td><td class="mono">ISO TANK + UN / CLASS</td><td class="thai">SPECIAL CONTAINER · .......DG..........OP..........FR <span class="th">เท่านั้น</span><span class="en">only</span></td></tr>
+          <tr class="e"><td>CFS split</td><td class="mono">CFS/CFS + House B/L A, B, C…</td><td><span class="th">ไม่เติมบรรทัด DEM</span><span class="en">no DEM line</span></td></tr>
+          <tr class="b"><td>CFS single</td><td class="mono">CFS/CFS, not split</td><td><span class="th">เติม DEM และอย่างอื่นเหมือน CY</span><span class="en">DEM and everything else like CY</span></td></tr>
+          <tr class="e"><td>ATTACHED RIDER</td><td class="mono">== ATTACHED RIDER ==</td><td><span class="th">ไม่เติม (หน้า 2 ของ B/L)</span><span class="en">left as it is (page 2 of a B/L)</span></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="caption">ตัวอย่างประกอบเท่านั้น วันที่สมมติ</p>
+    <p class="caption"><span class="th">ตัวอย่างประกอบเท่านั้น วันที่สมมติ</span><span class="en">Example only; made-up dates.</span></p>
     <div class="split">
       <div>
-        <h3>วันที่มาจากไหน</h3>
+        <h3><span class="th">วันที่มาจากไหน</span><span class="en">Where the dates come from</span></h3>
         <ul class="check-list">
-          <li>DEM = ช่อง <code>DEM.</code> ใน CHECK DEM ของ B/L นั้น</li>
-          <li>ค่าไฟ = ช่อง <code>REC.</code> ถ้าว่างใช้ ATA + 3 วัน</li>
-          <li>House B/L เช่น <code>...038A</code> ที่ไม่มีใน CHECK DEM ใช้วันที่ของ B/L หลัก <code>...038</code></li>
-          <li>บนเว็บ: วันที่ที่แก้ในตาราง &gt; CHECK DEM &gt; ช่องวันที่ด้านบน</li>
+          <li><span class="th">DEM = ช่อง <code>DEM.</code> ใน CHECK DEM ของ B/L นั้น</span><span class="en">DEM = the B/L's <code>DEM.</code> cell in CHECK DEM</span></li>
+          <li><span class="th">ค่าไฟ = ช่อง <code>REC.</code> ถ้าว่างใช้ ATA + 3 วัน</span><span class="en">Reefer power = <code>REC.</code>; blank → ATA + 3 days</span></li>
+          <li><span class="th">House B/L เช่น <code>...038A</code> ที่ไม่มีใน CHECK DEM ใช้วันที่ของ B/L หลัก <code>...038</code></span><span class="en">A house B/L such as <code>...038A</code> not in CHECK DEM uses its master <code>...038</code></span></li>
+          <li><span class="th">บนเว็บ: วันที่ที่แก้ในตาราง &gt; CHECK DEM &gt; ช่องวันที่ด้านบน</span><span class="en">On the web: date typed in the table &gt; CHECK DEM &gt; dates typed above</span></li>
         </ul>
       </div>
       <div>
-        <h3>ปริ้น x2</h3>
+        <h3><span class="th">ปริ้น x2</span><span class="en">Print x2</span></h3>
         <ul class="check-list">
-          <li>หนึ่ง B/L = หน้า D/O + หน้า ATTACHED RIDER ของมัน</li>
-          <li>CY: ซ้อนกันทีละ B/L เช่น 1, 1, 2, 2</li>
-          <li>CFS: แยกเป็น 2 ชุดต่อ B/L หลัก เช่น 038, 038A, 038B, 038, 038A, 038B</li>
-          <li>ใส่ไฟล์ที่เติมแล้วซ้ำ หน้าที่เติมแล้วจะถูกข้าม ไม่เติมซ้อน</li>
+          <li><span class="th">หนึ่ง B/L = หน้า D/O + ATTACHED RIDER / ATTACHED / ใบเปิดตู้ ของมัน</span><span class="en">One B/L = its D/O page + its ATTACHED RIDER / ATTACHED / form pages</span></li>
+          <li><span class="th">CY: ซ้อนกันทีละ B/L เช่น 1, 1, 2, 2</span><span class="en">CY: two of each B/L in a row, e.g. 1, 1, 2, 2</span></li>
+          <li><span class="th">CFS: แยกเป็น 2 ชุดต่อ B/L หลัก เช่น 038, 038A, 038B, 038, 038A, 038B</span><span class="en">CFS: two sets per master B/L, e.g. 038, 038A, 038B, 038, 038A, 038B</span></li>
+          <li><span class="th">ใส่ไฟล์ที่เติมแล้วซ้ำ หน้าที่เติมแล้วจะถูกข้าม ไม่เติมซ้อน</span><span class="en">A file that was already filled can be dropped again — filled pages are skipped</span></li>
         </ul>
       </div>
     </div>
+  </section>
+
+  <section class="panel" id="install">
+    <h2><span class="th">ติดตั้งครั้งแรก (โปรแกรมในเครื่อง)</span><span class="en">First-time install (desktop program)</span></h2>
+    <p class="sub"><span class="th">ทำครั้งเดียวต่อเครื่อง ใช้ Windows (ถ้าใช้แบบออนไลน์ ข้ามส่วนนี้ได้เลย)</span><span class="en">Once per computer, Windows. Skip this if you use the web pages.</span></p>
+    <ol class="steps">
+      <li><div>
+        <p><span class="th"><b>ติดตั้ง Python 3</b> จาก</span><span class="en"><b>Install Python 3</b> from</span> <a href="https://www.python.org/downloads/">python.org/downloads</a></p>
+        <p class="note"><span class="th">หน้าแรกของตัวติดตั้ง <span class="warn">ติ๊ก ☑ Add python.exe to PATH</span> ก่อนกด Install Now</span><span class="en">On the first installer screen <span class="warn">tick ☑ Add python.exe to PATH</span> before Install Now</span></p>
+      </div></li>
+      <li><div>
+        <p><span class="th"><b>ดาวน์โหลดโปรแกรม</b> กดปุ่ม “Download program (ZIP)” ด้านบน</span><span class="en"><b>Download the program</b> with “Download program (ZIP)” above</span></p>
+        <p class="note"><span class="th">คลิกขวาที่ไฟล์ ZIP → Extract All แล้วเก็บโฟลเดอร์ไว้ที่ไหนก็ได้ เช่น Documents</span><span class="en">Right-click the ZIP → Extract All, keep the folder anywhere, e.g. Documents</span></p>
+      </div></li>
+      <li><div>
+        <p><span class="th"><b>รันครั้งแรกต้องต่ออินเทอร์เน็ต</b></span><span class="en"><b>The first run needs the internet</b></span></p>
+        <p class="note"><span class="th">โปรแกรมติดตั้งไลบรารีที่ต้องใช้ (pymupdf, openpyxl) ให้เอง ใช้ฟอนต์ Angsana New ที่มากับ Windows</span><span class="en">It installs its libraries (pymupdf, openpyxl) by itself and uses Windows' Angsana New font</span></p>
+      </div></li>
+    </ol>
+  </section>
+
+  <section class="panel" id="use">
+    <h2><span class="th">ใช้งานทุกครั้ง (โปรแกรมในเครื่อง)</span><span class="en">Every time (desktop program)</span></h2>
+    <ol class="steps">
+      <li><div>
+        <p><span class="th"><b>วางไฟล์ในโฟลเดอร์ <code>input</code></b></span><span class="en"><b>Put the files in the <code>input</code> folder</b></span></p>
+        <p class="note"><span class="th">ไฟล์ D/O (และ ATTACHED / ใบเปิดตู้ ถ้ามี) และไฟล์ <code>CHECK DEM.xlsx</code></span><span class="en">The D/O PDF(s) (plus ATTACHED / opening forms if any) and <code>CHECK DEM.xlsx</code></span></p>
+      </div></li>
+      <li><div>
+        <p><span class="th"><b>ดับเบิลคลิก <code>run-do.bat</code></b></span><span class="en"><b>Double-click <code>run-do.bat</code></b></span></p>
+        <p class="note"><span class="th">หน้าจอดำแสดงทีละหน้าว่าเติมอะไร และตารางใบเปิดตู้ที่ต้องแก้</span><span class="en">The black window lists what was written on each page and the forms that need a correction</span></p>
+      </div></li>
+      <li><div>
+        <p><span class="th"><b>เปิดผลที่</b></span><span class="en"><b>Open</b></span> <code>output\DO-DEM.pdf</code> <span class="th">และ</span><span class="en">and</span> <code>output\DO-DEM-PRINT x 2.pdf</code></p>
+        <p class="note"><span class="th">ไฟล์ใน <code>input</code> ไม่ถูกแก้ ถ้าเปิดไฟล์ผลค้างไว้ ต้องปิดก่อนรันใหม่</span><span class="en">Files in <code>input</code> are not changed. Close an open result file before running again.</span></p>
+      </div></li>
+    </ol>
   </section>
 
   <section class="panel" id="claude">
-    <h2>ใช้กับ Claude Code</h2>
-    <p class="sub">สำหรับคนที่ใช้ Claude Code อยู่แล้ว ให้ Claude เติม D/O และรายงานผลให้</p>
+    <h2><span class="th">ใช้กับ Claude Code</span><span class="en">With Claude Code</span></h2>
+    <p class="sub"><span class="th">สำหรับคนที่ใช้ Claude Code อยู่แล้ว ให้ Claude เติม D/O และรายงานผลให้</span><span class="en">If you already use Claude Code, Claude can fill the D/Os and report back</span></p>
     <div class="cmd">
       <pre id="clone">git clone https://github.com/Rattanao/DO.git %USERPROFILE%\.claude\skills\do</pre>
-      <button type="button" data-target="clone">คัดลอก</button>
+      <button type="button" data-target="clone"><span class="th">คัดลอก</span><span class="en">Copy</span></button>
     </div>
-    <p class="note">เปิด Claude Code ใหม่ ไปที่โฟลเดอร์งานที่มีโฟลเดอร์ <code>input</code> แล้วพิมพ์ <code>DO</code></p>
+    <p class="note"><span class="th">เปิด Claude Code ใหม่ ไปที่โฟลเดอร์งานที่มีโฟลเดอร์ <code>input</code> แล้วพิมพ์ <code>DO</code></span><span class="en">Restart Claude Code, open the job folder that has <code>input</code>, and type <code>DO</code></span></p>
   </section>
 
   <section class="panel" id="help">
-    <h2>ถ้าเจอปัญหา</h2>
+    <h2><span class="th">ถ้าเจอปัญหา</span><span class="en">Troubleshooting</span></h2>
     <div class="trouble-scroll">
       <table class="trouble">
-        <thead><tr><th>ข้อความ / อาการ</th><th>วิธีแก้</th></tr></thead>
+        <thead><tr><th><span class="th">ข้อความ / อาการ</span><span class="en">Message / symptom</span></th><th><span class="th">วิธีแก้</span><span class="en">Fix</span></th></tr></thead>
         <tbody>
-          <tr><td>"…" ไม่ใช่ไฟล์ PDF หรือ Excel จริง</td><td>ไฟล์ตั้งชื่อเป็น .pdf แต่ข้างในไม่ใช่ PDF ลองเปิดไฟล์ดูก่อน แล้วดาวน์โหลดหรือ Print to PDF จากระบบใหม่</td></tr>
-          <tr><td>ช่องวันที่สีแดง / ยังไม่มีวันที่</td><td>ใส่ CHECK DEM หรือเติมช่อง DEM. วันที่ แล้วกดประมวลผล</td></tr>
-          <tr><td>หน้าเว็บยังเป็นแบบเก่า</td><td>กด Ctrl+F5 แล้วดูเลขเวอร์ชันท้ายหน้าเว็บ</td></tr>
-          <tr><td>ไม่พบ Python</td><td>ติดตั้ง Python ใหม่ และติ๊ก Add python.exe to PATH</td></tr>
-          <tr><td>ไม่พบไฟล์ DO*.pdf / CHECK DEM*.xlsx</td><td>ตรวจว่าไฟล์อยู่ในโฟลเดอร์ input ชื่อไฟล์ D/O ขึ้นต้นด้วย DO</td></tr>
-          <tr><td>Permission denied / cannot remove file</td><td>ปิดไฟล์ DO-DEM.pdf ที่เปิดค้างไว้ แล้วรันใหม่</td></tr>
+          <tr><td>"…" is not a real PDF or Excel file</td><td><span class="th">ไฟล์ตั้งชื่อเป็น .pdf แต่ข้างในไม่ใช่ PDF ลองเปิดไฟล์ดูก่อน แล้วดาวน์โหลดหรือ Print to PDF จากระบบใหม่</span><span class="en">Named .pdf but not a PDF inside — open it to check, then download or print to PDF from the system again</span></td></tr>
+          <tr><td>No date yet / red date cell</td><td><span class="th">ใส่ CHECK DEM หรือเติมช่อง DEM. date แล้วกด Process</span><span class="en">Add CHECK DEM or type the DEM. date, then press Process</span></td></tr>
+          <tr><td><span class="th">หน้าเว็บยังเป็นแบบเก่า</span><span class="en">The page looks old</span></td><td><span class="th">กด Ctrl+F5 แล้วดูเลขเวอร์ชันท้ายหน้าเว็บ</span><span class="en">Press Ctrl+F5 and check the version at the bottom of the page</span></td></tr>
+          <tr><td><span class="th">ไม่พบ Python</span><span class="en">Python not found</span></td><td><span class="th">ติดตั้ง Python ใหม่ และติ๊ก Add python.exe to PATH</span><span class="en">Reinstall Python and tick Add python.exe to PATH</span></td></tr>
+          <tr><td>Permission denied / cannot remove file</td><td><span class="th">ปิดไฟล์ DO-DEM.pdf ที่เปิดค้างไว้ แล้วรันใหม่</span><span class="en">Close the open DO-DEM.pdf and run again</span></td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
   <footer>
-    <p>ตรวจไฟล์ทุกครั้งก่อนปริ้นและส่งลูกค้า โดยเฉพาะหน้าที่ตารางขึ้นสีแดง</p>
-    <p>อัปเดตโปรแกรม: ดาวน์โหลด ZIP ใหม่แล้วแตกทับโฟลเดอร์เดิม · ดูโค้ดที่ <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a></p>
+    <p><span class="th">ตรวจไฟล์ทุกครั้งก่อนปริ้นและส่งลูกค้า โดยเฉพาะหน้าที่ตารางขึ้นสีแดง</span><span class="en">Always check the files before printing and sending them, especially pages marked red.</span></p>
+    <p><span class="th">อัปเดตโปรแกรม: ดาวน์โหลด ZIP ใหม่แล้วแตกทับโฟลเดอร์เดิม · ดูโค้ดที่</span><span class="en">To update: download the ZIP again and extract over the old folder · code at</span> <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a></p>
   </footer>
 </div>
 
 <script>
+// language: the choice is remembered; first visit follows the browser (Thai browser -> Thai, otherwise English)
+function setLang(l) {
+  document.documentElement.lang = l; document.documentElement.dataset.lang = l;
+  document.querySelectorAll(".langs button").forEach(b => b.classList.toggle("on", b.dataset.lang === l));
+  try { localStorage.setItem("doGuideLang", l); } catch (e) { }
+}
+let lang = null;
+try { lang = localStorage.getItem("doGuideLang"); } catch (e) { }
+setLang(lang || (/^th/i.test(navigator.language || "") ? "th" : "en"));
+document.querySelectorAll(".langs button").forEach(b => b.onclick = () => setLang(b.dataset.lang));
+
 document.querySelectorAll('button[data-target]').forEach(function (btn) {
+  const label = btn.innerHTML;
   btn.addEventListener('click', function () {
     var el = document.getElementById(btn.dataset.target);
     var text = el.textContent;
-    var done = function () { btn.textContent = 'คัดลอกแล้ว'; setTimeout(function () { btn.textContent = 'คัดลอก'; }, 1600); };
+    var done = function () { btn.innerHTML = '<span class="th">คัดลอกแล้ว</span><span class="en">Copied</span>'; setTimeout(function () { btn.innerHTML = label; }, 1600); };
     var fallback = function () {
       var r = document.createRange(); r.selectNodeContents(el);
       var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
-      btn.textContent = 'กด Ctrl+C';
+      btn.textContent = 'Ctrl+C';
     };
     try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
   });

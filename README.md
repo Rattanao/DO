@@ -1,5 +1,19 @@
 # DO — เติมวันที่ DEM / ค่าไฟ / SPECIAL CONTAINER ลงใน Cargo Delivery Order
 
+**English** — Web: https://rattanao.github.io/DO/ (guide in Thai / English: https://rattanao.github.io/DO/guide.html)
+
+1. **① CHECK DEM** (`checkdem.html`): drop the Freedays file, enter the ATA, press **Calculate** — the result goes to step ② by itself.
+2. **② DO** (`index.html`): drop the DO / ATTACHED / container-opening form PDFs (any order) and press **Process**.
+   Each B/L gets its DEM / reefer-power / SPECIAL CONTAINER notes (written in Thai on the document) and is merged as
+   DO → ATTACHED → opening form → removal request. The forms are checked against the D/O (vessel, arrival date — corrected
+   automatically, CNTR, CNEE, B/L NO., STATUS); wrong fields can be corrected on the page.
+3. **Download DO-DEM.pdf (x1 + x2)** or **Print x2**.
+
+Desktop: put the files in `input/`, double-click `run-do.bat`, results in `output/`. Claude Code: type `DO`.
+
+---
+
+
 โปรแกรมเติมข้อความท้ายใบ D/O (Heung-A Cargo Delivery Order, PDF หนึ่ง B/L ต่อหนึ่งหน้า)
 โดยดึงวันที่จากไฟล์ `CHECK DEM.xlsx` (รายงานจาก [Check-dem](https://github.com/Rattanao/Check-dem))
 แล้วบันทึกเป็น `output/DO-DEM.pdf` และไฟล์สำหรับปริ้น x2 `output/DO-DEM-PRINT x 2.pdf`

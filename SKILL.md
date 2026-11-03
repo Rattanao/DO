@@ -90,6 +90,7 @@ only** (the DG line is not underlined). Pages that already carry a typed annotat
 
 For layout changes (size, position, underline) edit `scripts/fill_do.py` and `index.html` together.
 
+The web pages are in English (the guide is Thai / English with a switch); text printed onto documents stays Thai.
 The web site has two steps (menu at the top): `checkdem.html` (① CHECK DEM, a copy of
 https://github.com/Rattanao/Check-dem's page) and `index.html` (② DO). "ใช้กับ DO ต่อ →" passes the CHECK DEM
 workbook to the DO page by itself as soon as it is calculated (localStorage `doCheckDem`, taken once, ignored after

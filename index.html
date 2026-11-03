@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -93,65 +93,65 @@
 </style>
 </head>
 <body>
-<header><div class="wrap"><span class="brand"><img src="assets/hal-logo.png" alt="Heung A Line"></span><h1>DO</h1><p>เติมวันเริ่มเก็บค่า DEM / ค่าไฟ / SPECIAL CONTAINER ลงในใบ D/O</p><span class="by">Project by Ms. Rattana Mudlae<br>Position Import DOC.</span></div></header>
+<header><div class="wrap"><span class="brand"><img src="assets/hal-logo.png" alt="Heung A Line"></span><h1>DO</h1><p>Fill DEM / reefer power / SPECIAL CONTAINER notes on Delivery Orders</p><span class="by">Project by Ms. Rattana Mudlae<br>Position Import DOC.</span></div></header>
 
-<nav class="stepnav"><div class="wrap"><a href="checkdem.html">① CHECK DEM</a><span>→</span><a href="./" class="on">② DO</a><span style="margin-left:auto"></span><a href="guide.html">คู่มือ</a></div></nav>
+<nav class="stepnav"><div class="wrap"><a href="checkdem.html">① CHECK DEM</a><span>→</span><a href="./" class="on">② DO</a><span style="margin-left:auto"></span><a href="guide.html">Guide</a></div></nav>
 
 <main class="wrap">
   <section class="card">
     <div class="inputs">
       <div class="wide">
-        <label class="t">ไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) <small>ใส่ได้หลายไฟล์ เรียงให้เอง</small></label>
-        <div class="drop" id="dropPdf"><span id="pdfText">ลากไฟล์มาวาง หรือ <b>คลิกเพื่อเลือกไฟล์</b></span></div>
+        <label class="t">DO / ATTACHED / container-opening form (.pdf) <small>several files, any order — sorted for you</small></label>
+        <div class="drop" id="dropPdf"><span id="pdfText">Drop files here or <b>click to choose</b></span></div>
         <input type="file" id="filePdf" accept=".pdf" multiple class="hidden">
       </div>
       <div class="wide">
-        <label class="t">ไฟล์ CHECK DEM (.xlsx) <small>ไม่ใส่ก็ได้</small></label>
-        <div class="drop" id="dropXls"><span id="xlsText">ลากไฟล์มาวาง หรือ <b>คลิกเพื่อเลือกไฟล์</b></span></div>
+        <label class="t">CHECK DEM file (.xlsx) <small>optional</small></label>
+        <div class="drop" id="dropXls"><span id="xlsText">Drop a file here or <b>click to choose</b></span></div>
         <input type="file" id="fileXls" accept=".xlsx,.xls" class="hidden">
       </div>
       <div>
-        <label class="t" for="demAll">DEM. วันที่</label>
+        <label class="t" for="demAll">DEM. date</label>
         <input type="date" id="demAll" autocomplete="off">
       </div>
       <div>
-        <label class="t" for="recAll">ค่าไฟ วันที่</label>
+        <label class="t" for="recAll">Reefer power date</label>
         <input type="date" id="recAll" autocomplete="off">
       </div>
       <div>
-        <label class="t" for="size">ขนาดตัวหนังสือ</label>
+        <label class="t" for="size">Font size</label>
         <input type="number" id="size" value="15.5" min="8" max="24" step="0.5">
       </div>
       <div class="btns">
-        <button id="run" disabled>ประมวลผล</button>
-        <button id="clear" class="ghost" disabled>ลบไฟล์</button>
+        <button id="run" disabled>Process</button>
+        <button id="clear" class="ghost" disabled>Clear files</button>
       </div>
     </div>
     <p class="rules">
-      <b>ทุกใบ</b> เริ่มเก็บค่า DEM. วันที่ ·
-      <b>DG</b> (<code>UN</code> / <code>CLASS</code>) เพิ่ม SPECIAL CONTAINER ·
-      <b>ตู้เย็น</b> (<code>20RF</code> / <code>40RH</code> / <code>TEMP</code>) เพิ่มวันเริ่มเก็บค่าไฟ ·
-      <b>ISO TANK + DG</b> เติมแค่ SPECIAL CONTAINER ·
-      <b>CFS SPLIT</b> (B/L หลัก + A, B, C…) ไม่เติม DEM · <b>CFS เดี่ยว</b> เติมเหมือน CY ·
-      หน้า <b>ATTACHED RIDER</b> ไม่เติม<br>
-      <b>รวมไฟล์</b>: ทีละ B/L เรียง DO → ATTACHED → ใบเปิดตู้ / คำร้อง ·
-      <b>ตรวจใบเปิดตู้</b>: ชื่อเรือ, CNTR, CNEE, B/L NO., STATUS (FCL = CY, CFS = เปิดตู้, LCL = ขนส่ง)<br>
-      <b>ปริ้น x2</b>: CY ซ้อนกันทีละ B/L (1,1,2,2) · CFS แยกเป็น 2 ชุดต่อ B/L หลัก (A,B,C,A,B,C)<br>
-      <b>วันที่</b>: ใส่ CHECK DEM หรือเติมเองที่ช่อง DEM. / ค่าไฟ (เติมอย่างใดอย่างหนึ่งหรือทั้งสองอย่าง) แล้วกด <b>ประมวลผล</b>
-      (ใช้กับทุก B/L ที่ CHECK DEM ไม่มีวันที่) · แก้ทีละ B/L ได้ที่ช่องวันที่ในตาราง แล้วกด <b>ประมวลผล</b> ·
-      ค่าไฟที่ไม่มีวันที่เลยใช้ ATA + 3 วัน<br>
-      ไฟล์ถูกประมวลผลในเบราว์เซอร์ของคุณเท่านั้น ไม่มีการอัปโหลดไปที่ใด
+      <b>Every D/O</b>: DEM start date ·
+      <b>DG</b> (<code>UN</code> / <code>CLASS</code>): adds SPECIAL CONTAINER ·
+      <b>Reefer</b> (<code>20RF</code> / <code>40RH</code> / <code>TEMP</code>): adds the power-charge start date ·
+      <b>ISO TANK + DG</b>: SPECIAL CONTAINER only ·
+      <b>CFS split</b> (master B/L + A, B, C…): no DEM · <b>Single CFS</b>: same as CY ·
+      <b>ATTACHED RIDER</b> pages: left as they are<br>
+      <b>Merge</b>: per B/L, DO → ATTACHED → container-opening form / removal request ·
+      <b>Form check</b>: vessel, arrival date (auto-corrected to the D/O), CNTR, CNEE, B/L NO., STATUS (FCL = CY, CFS = devanning, LCL = transport)<br>
+      <b>Print x2</b>: CY two of each B/L in a row (1,1,2,2) · CFS two sets per master B/L (A,B,C,A,B,C)<br>
+      <b>Dates</b>: from CHECK DEM, or type DEM. and/or reefer power above and press <b>Process</b>
+      (used for every B/L without a CHECK DEM date) · change one B/L in the table, then press <b>Process</b> ·
+      reefer power with no date at all = ATA + 3 days<br>
+      Files are processed in your browser only — nothing is uploaded.
     </p>
     <div class="msg" id="msg"></div>
   </section>
 
   <section class="card hidden" id="checkCard">
-    <h2 class="ct">ตรวจใบเปิดตู้ / คำร้อง เทียบกับ DO</h2>
+    <h2 class="ct">Container-opening form / removal request vs D/O</h2>
     <div id="checks"></div>
     <div class="toolbar" id="fixBar">
-      <button id="applyFix">แก้ไขใบเปิดตู้ตามช่องที่แก้</button>
-      <button id="saveOver" class="ghost hidden">บันทึกทับไฟล์เดิม</button>
-      <button id="saveFixed" class="ghost hidden">ดาวน์โหลดใบเปิดที่แก้แล้ว</button>
+      <button id="applyFix">Correct the form with these values</button>
+      <button id="saveOver" class="ghost hidden">Save over the original file</button>
+      <button id="saveFixed" class="ghost hidden">Download corrected form</button>
       <span id="fixMsg" class="fixmsg"></span>
     </div>
   </section>
@@ -160,18 +160,18 @@
     <div class="info" id="info"></div>
     <div class="chips" id="chips"></div>
     <div class="toolbar">
-      <input type="search" id="search" autocomplete="off" placeholder="ค้นหา B/L No. / วันที่">
-      <button id="download">ดาวน์โหลด DO-DEM.pdf (x1 + x2)</button>
-      <button id="print" class="ghost">ปริ้น x2</button>
+      <input type="search" id="search" autocomplete="off" placeholder="Search B/L No. / date">
+      <button id="download">Download DO-DEM.pdf (x1 + x2)</button>
+      <button id="print" class="ghost">Print x2</button>
     </div>
     <div class="tbl"><table>
-      <thead><tr><th>หน้า</th><th>B/L No.</th><th>แบบ</th><th>ค่าไฟ</th><th>DEM.</th><th>ข้อความที่เติม</th></tr></thead>
+      <thead><tr><th>Page</th><th>B/L No.</th><th>Type</th><th>Reefer power</th><th>DEM.</th><th>Note added</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table></div>
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-03b</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-03c</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -186,7 +186,7 @@ const RE_DG = /\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCLASS\s*:?\s*\d|\bCL\s*\d/;
 const RE_REEFER = /\b(20|40|45)R[FH]|\bTEMP\b/;
 const RE_TANK = /ISO\s*TANK|\b\d\dTK\b/;
 const RE_STATUS = /\b(CY|CFS)\s*\/\s*(CY|CFS)\b/;
-const KINDS = { "ทั่วไป": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ATTACHED RIDER": "BBDEFB", "ATTACHED SHEET": "D1C4E9", "ใบเปิดตู้": "FFF59D", "คำร้อง": "FFF59D", "ข้าม": "E0E0E0" };
+const KINDS = { "GENERAL": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ATTACHED RIDER": "BBDEFB", "ATTACHED SHEET": "D1C4E9", "OPENING FORM": "FFF59D", "REMOVAL REQUEST": "FFF59D", "SKIPPED": "E0E0E0" };
 const MARK = "DO-DEM-FILLED";         // invisible text on every page we fill (same as scripts/fill_do.py)
 const DONE = /DO-DEM-FILLED|CERTIFIED\s*TRUE\s*&\s*CORRECT\s*COPY|เริ่มเก็บค่า/;   // marker, or the old stamp / note in older outputs
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -217,10 +217,10 @@ function readCheckDem(bytes) {
   const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null });
   const norm = v => String(v ?? "").trim();
   const h = grid.findIndex(r => r.some(v => norm(v) === "B/L No."));
-  if (h < 0) throw new Error("ไม่พบหัวข้อ B/L No. ในไฟล์ CHECK DEM");
+  if (h < 0) throw new Error("No \"B/L No.\" heading in the CHECK DEM file");
   const col = name => grid[h].findIndex(v => norm(v) === name);
   const cBl = col("B/L No."), cRec = col("REC."), cDem = col("DEM.");
-  if (cDem < 0) throw new Error("ไม่พบหัวข้อ DEM. ในไฟล์ CHECK DEM");
+  if (cDem < 0) throw new Error("No \"DEM.\" heading in the CHECK DEM file");
   let ata = null;
   for (const r of grid.slice(0, h)) { const i = r.findIndex(v => norm(v) === "ATA"); if (i >= 0) ata = toDate(r[i + 1]); }
   const rows = {};
@@ -319,7 +319,7 @@ function under(lines, labelRe, maxDrop, width) {
 const RE_CNTR = /\b[A-Z]{3}[UJZ]\d{7}\b/g;   // owner code + U/J/Z + 7 digits, whole word (not inside a B/L no.)
 const RE_VESSEL = /[A-Z][A-Z0-9.&\- ]*?\s+V\s*\.\s*[A-Z0-9]+/;   // "DONGJIN CONFIDENT V.0153S" (Thai text around it is left out)
 const vesselKey = s => norm(String(s).replace(/\bV\s*\.\s*(?=\w)/, ""));   // ignore "V." before the voyage
-const STATUS_TH = { FCL: "FCL (CY)", CFS: "CFS = เปิดตู้", LCL: "LCL = ขนส่ง" };
+const STATUS_TH = { FCL: "FCL (CY)", CFS: "CFS = devanning", LCL: "LCL = transport" };
 
 // ---------- fill ----------
 // pdfs: [{name, bytes, handle?}] in any order (D/O, ATTACHED, ใบเปิดตู้); xlsBytes may be null (dates typed in instead)
@@ -367,25 +367,25 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const pg = pages[n - 1], text = pg.text, bl = pg.bl;
     const master = /[A-Z]$/.test(bl) ? bl.slice(0, -1) : bl, prevRow = out[out.length - 1];
     if (pg.type === "sheet" || pg.type === "open1" || pg.type === "open2") {
-      const kind = { sheet: "ATTACHED SHEET", open1: "ใบเปิดตู้", open2: "คำร้อง" }[pg.type];
-      out.push({ page: n, src: n, bl, master, attach: true, cfs: false, kind, note: "ไม่เติม (ตรวจในตารางด้านบน)" }); continue;
+      const kind = { sheet: "ATTACHED SHEET", open1: "OPENING FORM", open2: "REMOVAL REQUEST" }[pg.type];
+      out.push({ page: n, src: n, bl, master, attach: true, cfs: false, kind, note: "not filled (checked in the table above)" }); continue;
     }
     const rider = pg.type === "rider";
-    const unstamped = stripOldStamps(doc, doc.getPage(n - 1)) ? " · ลบตรายางเก่าออกแล้ว" : "";
+    const unstamped = stripOldStamps(doc, doc.getPage(n - 1)) ? " · old stamp removed" : "";
     if (DONE.test(text)) {
       const st0 = text.match(RE_STATUS);
       out.push({ page: n, src: n, bl, master, rider, attach: rider, cfs: rider ? !!(prevRow && prevRow.cfs) : !!st0 && st0[2] === "CFS",
-                 kind: "ข้าม", note: "เติมไว้แล้ว" + unstamped }); continue;
+                 kind: "SKIPPED", note: "already filled" + unstamped }); continue;
     }
     doc.getPage(n - 1).drawText(MARK, { x: 1, y: 1, size: 1, opacity: 0 });
     if (rider) {
-      out.push({ page: n, src: n, bl, master, rider: true, attach: true, cfs: prevRow ? prevRow.cfs : false, kind: "ATTACHED RIDER", note: "ไม่เติม" + unstamped }); continue;
+      out.push({ page: n, src: n, bl, master, rider: true, attach: true, cfs: prevRow ? prevRow.cfs : false, kind: "ATTACHED RIDER", note: "left as it is" + unstamped }); continue;
     }
     const st = text.match(RE_STATUS), cfs = !!st && st[2] === "CFS";
     const status = st ? st[0].replace(/\s/g, "") : "";
     const noDem = cfs && isSplit(bl);
     if ((await pg.p.getAnnotations()).some(a => a.subtype === "FreeText")) {
-      out.push({ page: n, src: n, bl, master, cfs, kind: "ข้าม", note: "มีข้อความอยู่แล้ว" }); continue;
+      out.push({ page: n, src: n, bl, master, cfs, kind: "SKIPPED", note: "has a typed note already" }); continue;
     }
     const key0 = bl in rows ? bl : master in rows ? master : null;
     const row = rows[key0] || {}, o = ov[n] || {};
@@ -401,7 +401,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
       if (dg) { kind = "REEFER+DG"; parts = [[684, SPECIAL], ...parts.map(([y, l]) => [y + 20, l])]; }
     }
     else if (dg) { kind = "DG"; parts = [[690, SPECIAL], [760, demLine]]; }
-    else { kind = "ทั่วไป"; parts = [[728, demLine]]; }
+    else { kind = "GENERAL"; parts = [[728, demLine]]; }
     const page = doc.getPage(n - 1), H = page.getHeight();
     for (const [y, lines] of parts) {
       if (!lines) continue;
@@ -413,7 +413,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const missing = kind !== "ISO TANK+DG" && !noDem && !dem;
     out.push({ page: n, src: n, bl, master, kind, rec, dem, missing, cfs, noDem, status, inSheet: key0 !== null, reefer,
                recMissing: reefer && !rec,
-               note: (cfs ? (noDem ? "CFS SPLIT · " : "CFS เดี่ยว เติมเหมือน CY · ") : "") +
+               note: (cfs ? (noDem ? "CFS split · " : "single CFS, filled like CY · ") : "") +
                      parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") });
   }
 
@@ -456,7 +456,7 @@ function checkForms(pages) {
       date: (d.text.match(/Arrival\s*Date\s*:?\s*(\d{4}\.\d{1,2}\.\d{1,2})/) || [])[1] || "",
     };
     const fields = [
-      ["vessel", "ชื่อเรือ"], ["date", "วันที่เรือเข้า"], ["cntr", "CNTR"], ["cnee", "CNEE"], ["bl", "B/L NO."], ["status", "STATUS"],
+      ["vessel", "Vessel"], ["date", "Arrival date"], ["cntr", "CNTR"], ["cnee", "CNEE"], ["bl", "B/L NO."], ["status", "STATUS"],
     ].map(([key, label]) => ({ key, label, doVal: doF[key], cells: [] }));
     for (const f of forms) {
       const L = f.lines;
@@ -492,7 +492,7 @@ function checkForms(pages) {
       };
       for (const fd of fields) {
         const g = got[fd.key];
-        fd.cells.push({ page: f.type === "open1" ? "ใบเปิดตู้" : "คำร้อง", ...(g || { val: null }), ok: g ? same(fd.key, fd.doVal, g.val) : null });
+        fd.cells.push({ page: f.type === "open1" ? "OPENING FORM" : "REMOVAL REQUEST", ...(g || { val: null }), ok: g ? same(fd.key, fd.doVal, g.val) : null });
       }
     }
     blocks.push({ bl: d.bl, fields });
@@ -542,21 +542,21 @@ function render() {
   const { rows, ata, name, font } = report;
   const bad = rows.filter(x => x.missing || x.recMissing).length;
   $("info").innerHTML =
-    `<div class="k">ต้นฉบับ</div><div>${escapeHtml(name)}</div>` +
+    `<div class="k">Source</div><div>${escapeHtml(name)}</div>` +
     `<div class="k">ATA</div><div class="ata">${ata ? dmy(ata) : "-"}</div>` +
-    `<div class="k">จำนวนหน้า</div><div>${rows.length}</div>` +
-    `<div class="k">ฟอนต์</div><div>${escapeHtml(font)}</div>` +
-    (bad ? `<div class="k" style="color:var(--red)">ยังไม่มีวันที่</div><div style="color:var(--red);font-weight:700">${bad} หน้า (เติมในช่องสีแดง)</div>` : "");
+    `<div class="k">Pages</div><div>${rows.length}</div>` +
+    `<div class="k">Font</div><div>${escapeHtml(font)}</div>` +
+    (bad ? `<div class="k" style="color:var(--red)">No date yet</div><div style="color:var(--red);font-weight:700">${bad} page(s) (fill the red cells)</div>` : "");
   const counts = {};
   rows.forEach(x => counts[x.kind] = (counts[x.kind] || 0) + 1);
   $("chips").innerHTML = Object.keys(KINDS).filter(k => counts[k]).map(k =>
-    `<span class="chip ${hidden.has(k) ? "off" : ""}" data-k="${k}" style="background:#${KINDS[k]}" title="คลิกเพื่อซ่อน/แสดง">${k}<small>${counts[k]} หน้า</small></span>`).join("");
+    `<span class="chip ${hidden.has(k) ? "off" : ""}" data-k="${k}" style="background:#${KINDS[k]}" title="Click to hide / show">${k}<small>${counts[k]} page(s)</small></span>`).join("");
   const q = $("search").value.trim().toLowerCase();
   // date cells are inputs: a date typed here applies to that B/L only
-  const dateIn = (x, k) => `<input type="date" data-s="${x.src}" data-k="${k}" value="${toInput(x[k])}" title="แก้วันที่เฉพาะ B/L นี้">`;
+  const dateIn = (x, k) => `<input type="date" data-s="${x.src}" data-k="${k}" value="${toInput(x[k])}" title="Change the date for this B/L only">`;
   const recCell = x => x.reefer ? `<td class="${x.recMissing ? "bad" : ""}">${dateIn(x, "rec")}</td>` : "<td></td>";
-  const demCell = x => x.rider || x.attach || x.kind === "ข้าม" || x.kind === "ISO TANK+DG" ? "<td></td>"
-    : x.noDem ? `<td style="color:var(--muted)">${x.status} SPLIT ไม่เติม</td>`
+  const demCell = x => x.rider || x.attach || x.kind === "SKIPPED" || x.kind === "ISO TANK+DG" ? "<td></td>"
+    : x.noDem ? `<td style="color:var(--muted)">${x.status} split — no DEM</td>`
     : `<td class="${x.missing ? "bad" : "b"}">${dateIn(x, "dem")}</td>`;
   $("tbody").innerHTML = rows.filter(x => !hidden.has(x.kind) && (!q || (x.bl + " " + x.note).toLowerCase().includes(q))).map(x =>
     `<tr data-p="${x.page}"><td>${x.page}</td><td class="b">${escapeHtml(x.bl)}</td>` +
@@ -570,7 +570,7 @@ async function preview(n) {
   const page = await doc.getPage(n), vp = page.getViewport({ scale: 1.5 });
   const cv = $("canvas"); cv.width = vp.width; cv.height = vp.height;
   await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
-  $("previewText").textContent = `ตัวอย่างหน้า ${n}`; $("previewText").dataset.p = n;
+  $("previewText").textContent = `Preview page ${n}`; $("previewText").dataset.p = n;
   $("preview").classList.remove("hidden");
   document.querySelectorAll("#tbody tr").forEach(tr => tr.classList.toggle("sel", +tr.dataset.p === n));
 }
@@ -579,7 +579,7 @@ async function preview(n) {
 async function run(keep) {
   if (!pdfFiles.length) return;
   const page = keep === true ? +($("previewText").dataset.p || 1) : 1;
-  $("msg").textContent = fileWarn; $("run").disabled = true; $("run").textContent = "กำลังประมวลผล...";
+  $("msg").textContent = fileWarn; $("run").disabled = true; $("run").textContent = "Processing...";
   try {
     const dates = { dem: fromInput($("demAll").value), rec: fromInput($("recAll").value) };
     const doFill = async () => ({ ...(await fill(pdfFiles, xlsFile ? xlsFile.bytes : null, parseFloat($("size").value) || 15.5, dates, overrides)),
@@ -590,15 +590,15 @@ async function run(keep) {
       const n = [...auto.values()].reduce((t, l) => t + l.length, 0);
       await writeFixes(auto);
       report = await doFill();
-      autoNote = `แก้วันที่ใบเปิดตู้ / คำร้องตาม DO ให้อัตโนมัติแล้ว ${n} ช่อง`;
+      autoNote = `Form dates corrected to the D/O automatically: ${n} field(s)`;
     }
     if (keep !== true) { hidden.clear(); $("search").value = ""; }
     render(); renderChecks();
     preview(Math.min(page, report.rows.length));   // not awaited: the button is usable again at once
   } catch (err) {
-    $("msg").textContent = "ทำไม่สำเร็จ: " + err.message;
+    $("msg").textContent = "Failed: " + err.message;
   }
-  $("run").textContent = "ประมวลผล"; update();
+  $("run").textContent = "Process"; update();
 }
 
 // x2 for printing. A B/L = its page plus any ATTACHED RIDER pages after it.
@@ -635,7 +635,7 @@ async function printX2() {
     };
     f.src = url;
   } catch (err) {
-    $("msg").textContent = "สร้างไฟล์ปริ้นไม่สำเร็จ: " + err.message;
+    $("msg").textContent = "Could not build the print file: " + err.message;
   }
   $("print").disabled = false;
 }
@@ -657,7 +657,7 @@ async function download() {
     await new Promise(r => setTimeout(r, 600));   // a short gap so the browser takes the second download too
     save(x2, PRINT_NAME);
   } catch (err) {
-    $("msg").textContent = "ดาวน์โหลดไม่สำเร็จ: " + err.message;
+    $("msg").textContent = "Download failed: " + err.message;
   }
   $("download").disabled = false;
 }
@@ -677,27 +677,27 @@ function renderChecks() {
     const pagesHdr = b.fields[0].cells.map(c => `<th>${c.page}</th>`).join("");
     const body = b.fields.map(fd => {
       const cells = fd.cells.map(c => {
-        if (c.val === null) return `<td style="color:var(--muted)">(ฟอร์มนี้ไม่มีช่องนี้)</td>`;
+        if (c.val === null) return `<td style="color:var(--muted)">(not on this form)</td>`;
         if (c.ok) return `<td>${escapeHtml(c.val)}${fd.key === "status" ? ` <small>${STATUS_TH[c.val] || ""}</small>` : ""}</td>`;
         bad++;
         const id = "fx" + (k++);
         c.inputId = id;
         const can = !!c.at;
         return `<td class="wrong">${escapeHtml(c.val)}<br>` +
-          (can ? `<input class="fix" id="${id}" value="${escapeHtml(suggest(fd.key, fd.doVal, c.val))}" title="ค่าที่จะพิมพ์ทับบนใบเปิดตู้">`
-               : `<small>แก้บนเว็บไม่ได้ (มีหลายค่าในช่องเดียว) ต้องแก้ในไฟล์ต้นฉบับ</small>`) + `</td>`;
+          (can ? `<input class="fix" id="${id}" value="${escapeHtml(suggest(fd.key, fd.doVal, c.val))}" title="Value to write over the form">`
+               : `<small>Cannot be corrected here (several values in one field) — correct the original file</small>`) + `</td>`;
       }).join("");
       const ok = fd.cells.every(c => c.ok !== false);
-      return `<tr><td class="b">${fd.label}</td><td>${escapeHtml(fd.doVal || "-")}</td>${cells}<td class="${ok ? "ok" : "ng"}">${ok ? "ตรง" : "ไม่ตรง"}</td></tr>`;
+      return `<tr><td class="b">${fd.label}</td><td>${escapeHtml(fd.doVal || "-")}</td>${cells}<td class="${ok ? "ok" : "ng"}">${ok ? "Match" : "Mismatch"}</td></tr>`;
     }).join("");
     return `<div class="chk"><h3>B/L ${escapeHtml(b.bl)}</h3><div class="tbl"><table>` +
-      `<thead><tr><th>หัวข้อ</th><th>DO (ต้นฉบับ)</th>${pagesHdr}<th>ผล</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
-  }).join("") + (bad ? `<p class="msg">⚠ ต้องแก้ ${blocks.length} B/L (${bad} ช่อง) — แก้ค่าในช่องสีแดง แล้วกด “แก้ไขใบเปิดตู้ตามช่องที่แก้”` +
-                         (okCount ? ` · อีก ${okCount} B/L ตรงทุกหัวข้อ (ไม่แสดง)` : "") + `</p>`
-                     : `<p class="allok">✓ ใบเปิดตู้ / คำร้อง ตรงกับ DO ทุกหัวข้อ (${all.length} B/L)</p>`);
+      `<thead><tr><th>Field</th><th>D/O (source)</th>${pagesHdr}<th>Result</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  }).join("") + (bad ? `<p class="msg">⚠ ${blocks.length} B/L to correct (${bad} field(s)) — edit the red cells, then press “Correct the form with these values”` +
+                         (okCount ? ` · ${okCount} more B/L match on every field (not shown)` : "") + `</p>`
+                     : `<p class="allok">✓ Forms match the D/O on every field (${all.length} B/L)</p>`);
   $("applyFix").classList.toggle("hidden", !bad);
   // warning at the top too, and bring the table into view
-  $("msg").textContent = [fileWarn, autoNote, bad ? `⚠ ใบเปิดตู้ / คำร้อง ไม่ตรงกับ DO ${bad} ช่อง — แก้ได้ในตาราง “ตรวจใบเปิดตู้” ด้านล่าง` : ""].filter(Boolean).join(" · ");
+  $("msg").textContent = [fileWarn, autoNote, bad ? `⚠ Forms do not match the D/O in ${bad} field(s) — correct them in the form-check table below` : ""].filter(Boolean).join(" · ");
   if (bad) $("checkCard").scrollIntoView({ behavior: "smooth", block: "start" });
   $("saveOver").classList.toggle("hidden", !fixedFiles.size || ![...fixedFiles.keys()].some(i => pdfFiles[i] && pdfFiles[i].handle));
   $("saveFixed").classList.toggle("hidden", !fixedFiles.size);
@@ -781,11 +781,11 @@ async function applyFix() {
     if (!byFile.has(c.at.fi)) byFile.set(c.at.fi, []);
     byFile.get(c.at.fi).push({ ...c.at, v });
   }
-  if (!byFile.size) { $("fixMsg").textContent = "ไม่มีช่องที่เปลี่ยนค่า"; return; }
+  if (!byFile.size) { $("fixMsg").textContent = "No value was changed"; return; }
   await writeFixes(byFile);
-  $("fixMsg").textContent = "แก้แล้ว กำลังตรวจใหม่…";
+  $("fixMsg").textContent = "Corrected — checking again…";
   await run(true);
-  $("fixMsg").textContent = "แก้แล้ว — บันทึกทับไฟล์เดิม หรือดาวน์โหลดไฟล์ที่แก้แล้ว";
+  $("fixMsg").textContent = "Corrected — save over the original file or download the corrected one";
 }
 
 async function saveOver() {
@@ -794,14 +794,14 @@ async function saveOver() {
     if (!f.handle) continue;
     try {
       if ((await f.handle.queryPermission({ mode: "readwrite" })) !== "granted" &&
-          (await f.handle.requestPermission({ mode: "readwrite" })) !== "granted") throw new Error("ไม่ได้รับอนุญาตให้เขียนไฟล์");
+          (await f.handle.requestPermission({ mode: "readwrite" })) !== "granted") throw new Error("no permission to write the file");
       const w = await f.handle.createWritable(); await w.write(bytes); await w.close();
-      $("fixMsg").textContent = `บันทึกทับ "${f.name}" แล้ว`;
-    } catch (err) { $("fixMsg").textContent = `บันทึกทับ "${f.name}" ไม่ได้: ${err.message} — ใช้ปุ่มดาวน์โหลดแทน`; }
+      $("fixMsg").textContent = `Saved over "${f.name}"`;
+    } catch (err) { $("fixMsg").textContent = `Could not save over "${f.name}": ${err.message} — use the download button instead`; }
   }
 }
 function saveFixed() {
-  for (const [fi, bytes] of fixedFiles) save(bytes, pdfFiles[fi].name.replace(/\.pdf$/i, "") + "-แก้ไข.pdf");
+  for (const [fi, bytes] of fixedFiles) save(bytes, pdfFiles[fi].name.replace(/\.pdf$/i, "") + "-corrected.pdf");
 }
 $("applyFix").onclick = applyFix;
 $("saveOver").onclick = saveOver;
@@ -811,7 +811,7 @@ $("saveFixed").onclick = saveFixed;
 function update() { $("run").disabled = !pdfFiles.length; $("clear").disabled = !(pdfFiles.length || xlsFile || report); }
 function clearAll() {
   pdfFiles = []; xlsFile = report = null; overrides = {}; fileWarn = ""; autoNote = ""; fixedFiles = new Map(); hidden.clear();
-  $("pdfText").innerHTML = $("xlsText").innerHTML = "ลากไฟล์มาวาง หรือ <b>คลิกเพื่อเลือกไฟล์</b>";
+  $("pdfText").innerHTML = $("xlsText").innerHTML = "Drop files here or <b>click to choose</b>";
   $("filePdf").value = $("fileXls").value = $("demAll").value = $("recAll").value = "";
   $("search").value = ""; $("msg").textContent = "";
   $("result").classList.add("hidden"); $("preview").classList.add("hidden"); $("checkCard").classList.add("hidden");
@@ -837,13 +837,13 @@ async function take(files, handles = []) {
     try { const h = await handles[fi]; if (h && h.kind === "file") item.handle = h; } catch { }
     const kind = kindOf(item.bytes), kb = Math.max(1, Math.round(item.bytes.length / 1024));
     if (kind === "pdf") { pdfFiles.push(item); added = true; }
-    else if (kind === "excel") { xlsFile = item; added = true; $("xlsText").innerHTML = `<b>${escapeHtml(f.name)}</b> (คลิกเพื่อเปลี่ยนไฟล์)`; }
-    else bad.push(`"${f.name}" (${kb} KB) ไม่ใช่ไฟล์ PDF หรือ Excel จริง` +
-                  (kind === "html" ? " — เป็นหน้าเว็บที่บันทึกมา" : "") +
-                  " — เปิดไฟล์นี้ดูก่อน หรือดาวน์โหลด/Print เป็น PDF ใหม่");
+    else if (kind === "excel") { xlsFile = item; added = true; $("xlsText").innerHTML = `<b>${escapeHtml(f.name)}</b> (click to change)`; }
+    else bad.push(`"${f.name}" (${kb} KB) is not a real PDF or Excel file` +
+                  (kind === "html" ? " — it is a saved web page" : "") +
+                  " — open it to check, or download / print it to PDF again");
   }
   fileWarn = bad.join(" · "); $("msg").textContent = fileWarn;
-  if (pdfFiles.length) $("pdfText").innerHTML = pdfFiles.map(f => `<b>${escapeHtml(f.name)}</b>`).join(" + ") + " (คลิกเพื่อเพิ่มไฟล์)";
+  if (pdfFiles.length) $("pdfText").innerHTML = pdfFiles.map(f => `<b>${escapeHtml(f.name)}</b>`).join(" + ") + " (click to add more)";
   update();
   if (added && pdfFiles.length) { overrides = {}; await run(); }   // DO in -> process right away
 }
@@ -892,11 +892,11 @@ async function takeCheckDem() {
   try { got = JSON.parse(localStorage.getItem("doCheckDem") || "null"); localStorage.removeItem("doCheckDem"); } catch { }
   if (!got || !got.b64 || Date.now() - (got.at || 0) > 12 * 3600e3) return;
   xlsFile = { name: got.name, bytes: Uint8Array.from(atob(got.b64), c => c.charCodeAt(0)) };
-  const when = new Date(got.at).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
-  $("xlsText").innerHTML = `<b>${escapeHtml(got.name)}</b> (จากหน้า CHECK DEM ${when} น.${got.bls ? ` · ${got.bls} B/L` : ""})`;
+  const when = new Date(got.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  $("xlsText").innerHTML = `<b>${escapeHtml(got.name)}</b> (from CHECK DEM, ${when}${got.bls ? ` · ${got.bls} B/L` : ""})`;
   update();
-  if (pdfFiles.length) { await run(true); $("msg").textContent = ["ได้ CHECK DEM ใหม่จากขั้นที่ 1 — ประมวลผลใหม่แล้ว", $("msg").textContent].filter(Boolean).join(" · "); }
-  else $("msg").textContent = "ได้ CHECK DEM จากขั้นที่ 1 แล้ว — ใส่ไฟล์ DO / ATTACHED / ใบเปิดตู้ ต่อได้เลย";
+  if (pdfFiles.length) { await run(true); $("msg").textContent = ["New CHECK DEM from step 1 — processed again", $("msg").textContent].filter(Boolean).join(" · "); }
+  else $("msg").textContent = "CHECK DEM received from step 1 — now drop the DO / ATTACHED / form files";
 }
 addEventListener("pageshow", () => { clearAll(); $("size").value = "15.5"; takeCheckDem(); });
 addEventListener("storage", e => { if (e.key === "doCheckDem" && e.newValue) takeCheckDem(); });   // DO page already open in another tab
