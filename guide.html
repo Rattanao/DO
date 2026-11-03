@@ -137,13 +137,15 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
     <h1>DO</h1>
     <p class="lede">เติมวันเริ่มเก็บค่า DEM วันเริ่มเก็บค่าไฟ และ SPECIAL CONTAINER ลงท้ายใบ Cargo Delivery Order ทุกหน้าในครั้งเดียว ดึงวันที่จาก CHECK DEM หรือพิมพ์เอง แล้วได้ไฟล์พร้อมปริ้น 2 ชุด</p>
     <div class="flow" aria-label="ขั้นตอนการทำงาน">
+      <span class="doc">Freedays.xls + ATA</span><span class="op">→ ① CHECK DEM →</span>
       <span class="doc">DO.pdf</span><span class="op">+</span>
-      <span class="doc">CHECK DEM.xlsx</span><span class="op">→</span>
+      <span class="doc">CHECK DEM.xlsx</span><span class="op">→ ② DO →</span>
       <span class="out">DO-DEM.pdf</span><span class="op">+</span>
       <span class="out">DO-DEM-PRINT x 2.pdf</span>
     </div>
     <div class="cta">
-      <a class="btn primary" href="./">ทำออนไลน์ (ไม่ต้องติดตั้ง)</a>
+      <a class="btn primary" href="checkdem.html">① CHECK DEM ออนไลน์</a>
+      <a class="btn primary" href="./">② DO ออนไลน์</a>
       <a class="btn ghost" href="https://github.com/Rattanao/DO/archive/refs/heads/main.zip">ดาวน์โหลดโปรแกรม (ZIP)</a>
       <a class="btn ghost" href="https://github.com/Rattanao/DO">เปิดหน้า GitHub</a>
     </div>
@@ -154,7 +156,11 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
     <p class="sub">ไม่ต้องติดตั้งอะไร ไฟล์ประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้อยู่ ไม่มีการอัปโหลดไปที่ใด</p>
     <ol class="steps">
       <li><div>
-        <p><b>ลากไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) มาวาง</b> ใส่ได้หลายไฟล์ ลำดับไหนก็ได้ เว็บรวมทีละ B/L เรียง DO → ATTACHED → ใบเปิดตู้ → คำร้อง</p>
+        <p><b>① CHECK DEM</b> (เมนูด้านบนของเว็บ): ลากไฟล์ Freedays (.xls / .xlsx) ใส่วันที่ ATA แล้วกด <b>คำนวณ</b></p>
+        <p class="note">กด <b>ใช้กับ DO ต่อ →</b> เว็บพาไปหน้า ② DO พร้อมใส่ CHECK DEM ให้แล้ว ไม่ต้องดาวน์โหลดแล้วใส่ใหม่ (หรือกดดาวน์โหลด CHECK DEM.xlsx เก็บไว้ก็ได้)</p>
+      </div></li>
+      <li><div>
+        <p><b>② DO: ลากไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) มาวาง</b> ใส่ได้หลายไฟล์ ลำดับไหนก็ได้ เว็บรวมทีละ B/L เรียง DO → ATTACHED → ใบเปิดตู้ → คำร้อง</p>
         <p class="note">ไฟล์ <code>CHECK DEM.xlsx</code> ใส่หรือไม่ใส่ก็ได้ ถ้าไม่ใส่ ให้เติมช่อง <b>DEM. วันที่</b> และ/หรือ <b>ค่าไฟ วันที่</b> เอง</p>
       </div></li>
       <li><div>

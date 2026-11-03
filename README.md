@@ -43,6 +43,13 @@
 
 ## ใช้งานผ่านเว็บ (ไม่ต้องติดตั้งอะไร)
 
+เว็บมี 2 ขั้นต่อกัน เลือกจากเมนูด้านบน: **① CHECK DEM → ② DO**
+
+- **① CHECK DEM** (https://rattanao.github.io/DO/checkdem.html): ลากไฟล์ Freedays ใส่ ATA กด **คำนวณ** แล้วกด **ใช้กับ DO ต่อ →**
+  เว็บพาไปหน้า ② DO พร้อมใส่ CHECK DEM ให้แล้ว (หรือกดดาวน์โหลด CHECK DEM.xlsx ก็ได้)
+  — หน้านี้มาจาก [Check-dem](https://github.com/Rattanao/Check-dem) กฎคำนวณเหมือนกัน
+- **② DO** (https://rattanao.github.io/DO/): ทำตามขั้นตอนด้านล่าง
+
 เปิดที่ **https://rattanao.github.io/DO/**
 
 1. ลากไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) มาวาง ใส่ได้หลายไฟล์ เว็บแยกชนิดและเรียงให้เอง ไฟล์ `CHECK DEM.xlsx` จะใส่หรือไม่ใส่ก็ได้
@@ -109,7 +116,8 @@ git clone https://github.com/Rattanao/DO "%USERPROFILE%\.claude\skills\do"
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `index.html` | หน้าเว็บ (ทำออนไลน์) |
+| `index.html` | หน้าเว็บ ② DO |
+| `checkdem.html` | หน้าเว็บ ① CHECK DEM (มาจาก Check-dem) ส่งผลต่อให้หน้า DO |
 | `guide.html` | หน้าคู่มือ + ปุ่มดาวน์โหลดโปรแกรม (https://rattanao.github.io/DO/guide.html) |
 | `run-do.bat` | ดับเบิลคลิกเพื่อรันโปรแกรมกับไฟล์ในโฟลเดอร์ `input` |
 | `scripts/fill_do.py` | โค้ดโปรแกรม Python |

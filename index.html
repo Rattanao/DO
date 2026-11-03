@@ -75,6 +75,11 @@
   .hidden { display: none; }
   footer { text-align: center; color: var(--muted); font-size: 13px; padding-bottom: 24px; }
   footer a { color: var(--navy); }
+  .stepnav { background: #fff; border-bottom: 1px solid var(--line); }
+  .stepnav .wrap { display: flex; gap: 6px; align-items: center; padding: 8px 16px; flex-wrap: wrap; }
+  .stepnav a { text-decoration: none; color: var(--navy); font-weight: 600; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); }
+  .stepnav a.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .stepnav span { color: var(--muted); }
   h2.ct { margin: 0 0 12px; font-size: 19px; color: var(--navy); }
   .chk { margin-bottom: 14px; }
   .chk h3 { margin: 0 0 6px; font-size: 16px; }
@@ -89,6 +94,8 @@
 </head>
 <body>
 <header><div class="wrap"><span class="brand"><img src="assets/hal-logo.png" alt="Heung A Line"></span><h1>DO</h1><p>เติมวันเริ่มเก็บค่า DEM / ค่าไฟ / SPECIAL CONTAINER ลงในใบ D/O</p><span class="by">Project by Ms. Rattana Mudlae<br>Position Import DOC.</span></div></header>
+
+<nav class="stepnav"><div class="wrap"><a href="checkdem.html">① CHECK DEM</a><span>→</span><a href="./" class="on">② DO</a><span style="margin-left:auto"></span><a href="guide.html">คู่มือ</a></div></nav>
 
 <main class="wrap">
   <section class="card">
@@ -164,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-02d</footer>
+<footer><a href="guide.html">คู่มือ / ดาวน์โหลดโปรแกรม</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · เวอร์ชัน 2026-11-03a</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -878,7 +885,20 @@ $("chips").onclick = e => {
 };
 $("tbody").onclick = e => { const tr = e.target.closest("tr"); if (tr && e.target.tagName !== "INPUT") preview(+tr.dataset.p); };
 // new job = empty form: the browser must not bring back dates from the last visit (reload / back button)
-addEventListener("pageshow", () => { clearAll(); $("size").value = "15.5"; });
+addEventListener("pageshow", () => {
+  clearAll(); $("size").value = "15.5";
+  // coming from step 1 (CHECK DEM page): its workbook is already here
+  try {
+    const got = JSON.parse(sessionStorage.getItem("doCheckDem") || "null");
+    if (got) {
+      sessionStorage.removeItem("doCheckDem");
+      xlsFile = { name: got.name, bytes: Uint8Array.from(atob(got.b64), c => c.charCodeAt(0)) };
+      $("xlsText").innerHTML = `<b>${escapeHtml(got.name)}</b> (จากหน้า CHECK DEM)`;
+      $("msg").textContent = "รับ CHECK DEM จากขั้นที่ 1 แล้ว — ใส่ไฟล์ DO / ATTACHED / ใบเปิดตู้ ต่อได้เลย";
+      update();
+    }
+  } catch { }
+});
 </script>
 </body>
 </html>

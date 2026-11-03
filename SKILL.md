@@ -89,3 +89,8 @@ only** (the DG line is not underlined). Pages that already carry a typed annotat
    `output/DO-DEM.pdf` and `output/DO-DEM-PRINT x 2.pdf`.
 
 For layout changes (size, position, underline) edit `scripts/fill_do.py` and `index.html` together.
+
+The web site has two steps (menu at the top): `checkdem.html` (① CHECK DEM, a copy of
+https://github.com/Rattanao/Check-dem's page) and `index.html` (② DO). "ใช้กับ DO ต่อ →" passes the CHECK DEM
+workbook to the DO page through sessionStorage (`doCheckDem`); a reload starts the DO page empty.
+If the Check-dem rules change, copy its page again and keep the menu, buildXlsx() and the hand-off button.
