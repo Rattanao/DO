@@ -37,6 +37,7 @@
   button { font: inherit; font-weight: 600; font-size: 16px; border: 0; border-radius: 8px; padding: 12px 20px; cursor: pointer; background: var(--navy); color: #fff; }
   button:disabled { opacity: .4; cursor: not-allowed; }
   button.ghost { background: #fff; color: var(--navy); border: 1px solid var(--navy); }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
   .rules { font-size: 14px; color: var(--muted); margin: 12px 0 0; line-height: 1.6; }
   .rules code { background: var(--navy-soft); color: var(--navy); padding: 1px 6px; border-radius: 4px; }
   .msg { color: var(--red); font-weight: 600; margin-top: 10px; }
@@ -88,7 +89,7 @@
         <label class="t" for="ata">ATA</label>
         <input type="date" id="ata">
       </div>
-      <button id="run" disabled>Calculate</button>
+      <div class="btns"><button id="run" disabled>Calculate</button><button id="clearDem" class="ghost" disabled>Clear files</button></div>
     </div>
     <p class="rules">
       <b>TOTAL</b> = first number + first number after Add (<code>7/5 Add 7/9</code> = 14) ·
@@ -155,8 +156,9 @@ function palette(keys) {
 }
 
 // ---------- read file ----------
-function loadFile(file) {
+function loadFile(file, restoring) {
   $("msg").textContent = "";
+  return new Promise(done => {
   const reader = new FileReader();
   reader.onload = e => {
     try {
@@ -173,17 +175,20 @@ function loadFile(file) {
       const rows = aoa.slice(hRow + 1).filter(r => r.some(v => String(v).trim() !== ""))
         .map(r => [r[cFree], ...fields.map(f => r[f[1]])].map(v => String(v ?? "").trim()));
       src = { name: file.name, header, rows };
+      if (!restoring) saveState({ name: file.name, b64: toB64(new Uint8Array(e.target.result)), ata: $("ata").value, done: false });
       $("dropText").innerHTML = `<b>${escapeHtml(file.name)}</b> · ${rows.length} B/L (click to change)`;
       update();
     } catch (err) {
       src = null; $("msg").textContent = "Cannot read the file: " + err.message; update();
     }
+    done();
   };
   reader.readAsArrayBuffer(file);
+  });
 }
 const escapeHtml = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-function update() { $("run").disabled = !(src && $("ata").value); }
+function update() { $("run").disabled = !(src && $("ata").value); $("clearDem").disabled = !(src || report || $("ata").value); }
 
 // ---------- compute ----------
 function compute() {
@@ -345,6 +350,36 @@ async function download() {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+
+// ---------- keep the page as it was (file, ATA, result) until "Clear files" ----------
+// stored in this browser (localStorage "checkDemState"), so going to ② DO and back finds everything still here
+const STATE_KEY = "checkDemState";
+function toB64(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(s); }
+function readState() { try { return JSON.parse(localStorage.getItem(STATE_KEY) || "null"); } catch { return null; } }
+function saveState(part) {
+  const st = { ...(readState() || {}), ...part };
+  try { localStorage.setItem(STATE_KEY, JSON.stringify(st)); } catch { }
+}
+async function restoreState() {
+  const st = readState();
+  if (!st) { update(); return; }
+  if (st.ata) $("ata").value = st.ata;
+  if (st.b64) await loadFile(new File([Uint8Array.from(atob(st.b64), c => c.charCodeAt(0))], st.name), true);
+  update();
+  if (st.done && src && $("ata").value) {   // show the result again; it was already sent to ② DO when it was calculated
+    compute();
+    $("msg").innerHTML = `<span style="color:#006100">Kept from before (${report.data.length} B/L) — press <b>Clear files</b> to start a new job</span>`;
+  }
+}
+function clearDem() {
+  try { localStorage.removeItem(STATE_KEY); } catch { }
+  src = null; report = null; hidden.clear();
+  $("file").value = ""; $("ata").value = ""; $("search").value = ""; $("msg").textContent = "";
+  $("dropText").innerHTML = "Drop a file here or <b>click to choose</b>";
+  $("result").classList.add("hidden");
+  update();
+}
+
 // ---------- events ----------
 const drop = $("drop");
 drop.onclick = () => $("file").click();
@@ -352,7 +387,7 @@ $("file").onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
 drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
 drop.ondragleave = () => drop.classList.remove("over");
 drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]); };
-$("ata").oninput = update;
+$("ata").oninput = () => { update(); saveState({ ata: $("ata").value }); };
 $("search").oninput = render;
 $("download").onclick = download;
 // hand-off to step 2: every finished CHECK DEM is sent to the DO page by itself (localStorage "doCheckDem",
@@ -369,7 +404,9 @@ async function sendToDo() {
     return false;
   }
 }
-$("run").onclick = async () => { compute(); await sendToDo(); };
+$("run").onclick = async () => { compute(); saveState({ done: true }); await sendToDo(); };
+$("clearDem").onclick = clearDem;
+restoreState();
 $("toDo").onclick = async () => { if (await sendToDo()) location.href = "./"; };
 $("chips").onclick = e => {
   const k = e.target.closest(".chip")?.dataset.k; if (!k) return;

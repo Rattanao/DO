@@ -97,3 +97,5 @@ workbook to the DO page by itself as soon as it is calculated (localStorage `doC
 12 h); a DO page already open in another tab takes it at once and re-processes its D/O files.
 If the Check-dem rules change, copy its page again and keep the menu, buildXlsx() and the hand-off button
 (synced with Check-dem 63453a0, 2026-11-05: Freedays before TOTAL, POL after B/L No., wider reefer TPSZ rule).
+The CHECK DEM page keeps its file, ATA and result (localStorage `checkDemState`) when you go to ② DO and back,
+until "Clear files" is pressed; a restored result is shown again but not re-sent to DO.
