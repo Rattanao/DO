@@ -366,13 +366,16 @@ async function restoreState() {
   if (st.ata) $("ata").value = st.ata;
   if (st.b64) await loadFile(new File([Uint8Array.from(atob(st.b64), c => c.charCodeAt(0))], st.name), true);
   update();
-  if (st.done && src && $("ata").value) {   // show the result again; it was already sent to ② DO when it was calculated
+  if (st.done && src && $("ata").value) {   // show the result again, and make sure ② DO still has it
     compute();
-    $("msg").innerHTML = `<span style="color:#006100">Kept from before (${report.data.length} B/L) — press <b>Clear files</b> to start a new job</span>`;
+    let sent = false;
+    try { sent = !!localStorage.getItem("doCheckDem"); } catch { }
+    if (!sent) await sendToDo();
+    $("msg").innerHTML = `<span style="color:#006100">Kept from before (${report.data.length} B/L), also on ② DO — press <b>Clear files</b> to start a new job</span>`;
   }
 }
 function clearDem() {
-  try { localStorage.removeItem(STATE_KEY); } catch { }
+  try { localStorage.removeItem(STATE_KEY); localStorage.removeItem("doCheckDem"); } catch { }   // ② DO lets it go too
   src = null; report = null; hidden.clear();
   $("file").value = ""; $("ata").value = ""; $("search").value = ""; $("msg").textContent = "";
   $("dropText").innerHTML = "Drop a file here or <b>click to choose</b>";

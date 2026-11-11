@@ -93,8 +93,9 @@ For layout changes (size, position, underline) edit `scripts/fill_do.py` and `in
 The web pages are in English (the guide is Thai / English with a switch); text printed onto documents stays Thai.
 The web site has two steps (menu at the top): `checkdem.html` (① CHECK DEM, a copy of
 https://github.com/Rattanao/Check-dem's page) and `index.html` (② DO). "ใช้กับ DO ต่อ →" passes the CHECK DEM
-workbook to the DO page by itself as soon as it is calculated (localStorage `doCheckDem`, taken once, ignored after
-12 h); a DO page already open in another tab takes it at once and re-processes its D/O files.
+workbook to the DO page by itself as soon as it is calculated (localStorage `doCheckDem`). It stays on the DO page
+(refresh, "Clear" on DO) until "Clear files" on ①; a CHECK DEM dropped on DO by hand wins. A DO page already open in
+another tab takes it at once and re-processes its D/O files.
 If the Check-dem rules change, copy its page again and keep the menu, buildXlsx() and the hand-off button
 (synced with Check-dem 63453a0, 2026-11-05: Freedays before TOTAL, POL after B/L No., wider reefer TPSZ rule).
 The CHECK DEM page keeps its file, ATA and result (localStorage `checkDemState`) when you go to ② DO and back,

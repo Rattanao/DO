@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-05b</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-11a</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -867,7 +867,7 @@ for (const [drop, input] of [["dropPdf", "filePdf"], ["dropXls", "fileXls"]]) {
     take(e.dataTransfer.files, hs);
   };
 }
-$("clear").onclick = clearAll;
+$("clear").onclick = () => { clearAll(); takeCheckDem(); };   // DO files go; the CHECK DEM from step ① stays
 // dates (DEM, ค่าไฟ, either or both, and per-B/L dates in the table) apply when ประมวลผล is pressed
 $("size").onchange = () => run(true);
 $("tbody").onchange = e => {
@@ -885,13 +885,15 @@ $("chips").onclick = e => {
 };
 $("tbody").onclick = e => { const tr = e.target.closest("tr"); if (tr && e.target.tagName !== "INPUT") preview(+tr.dataset.p); };
 // new job = empty form: the browser must not bring back dates from the last visit (reload / back button)
-// step 1 → step 2: the CHECK DEM page sends every finished result here by itself (localStorage "doCheckDem").
-// Taken once (then removed); results older than 12 hours are ignored. If DO files are already in, they are redone.
+// step 1 → step 2: the CHECK DEM page keeps its latest result in localStorage "doCheckDem" until its "Clear files".
+// Every time this page opens (or the result changes in another tab) that result is put in as the CHECK DEM file,
+// unless a CHECK DEM file was dropped here by hand. If DO files are already in, they are processed again.
 async function takeCheckDem() {
   let got = null;
-  try { got = JSON.parse(localStorage.getItem("doCheckDem") || "null"); localStorage.removeItem("doCheckDem"); } catch { }
-  if (!got || !got.b64 || Date.now() - (got.at || 0) > 12 * 3600e3) return;
-  xlsFile = { name: got.name, bytes: Uint8Array.from(atob(got.b64), c => c.charCodeAt(0)) };
+  try { got = JSON.parse(localStorage.getItem("doCheckDem") || "null"); } catch { }
+  if (!got || !got.b64) return;
+  if (xlsFile && !xlsFile.fromDem) return;            // a file dropped here by hand wins
+  xlsFile = { name: got.name, bytes: Uint8Array.from(atob(got.b64), c => c.charCodeAt(0)), fromDem: true };
   const when = new Date(got.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   $("xlsText").innerHTML = `<b>${escapeHtml(got.name)}</b> (from CHECK DEM, ${when}${got.bls ? ` · ${got.bls} B/L` : ""})`;
   update();
@@ -899,7 +901,15 @@ async function takeCheckDem() {
   else $("msg").textContent = "CHECK DEM received from step 1 — now drop the DO / ATTACHED / form files";
 }
 addEventListener("pageshow", () => { clearAll(); $("size").value = "15.5"; takeCheckDem(); });
-addEventListener("storage", e => { if (e.key === "doCheckDem" && e.newValue) takeCheckDem(); });   // DO page already open in another tab
+// DO page already open in another tab: a new CHECK DEM comes in at once; "Clear files" on ① takes it away again
+addEventListener("storage", e => {
+  if (e.key !== "doCheckDem") return;
+  if (e.newValue) { if (xlsFile && xlsFile.fromDem) xlsFile = null; takeCheckDem(); }
+  else if (xlsFile && xlsFile.fromDem) {
+    xlsFile = null; $("xlsText").innerHTML = "Drop a file here or <b>click to choose</b>"; update();
+    $("msg").textContent = "CHECK DEM was cleared on step ①";
+  }
+});
 </script>
 </body>
 </html>
