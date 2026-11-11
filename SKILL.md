@@ -27,7 +27,7 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
 3. Reefer seen (20RF / 40RH / TEMP): `เริ่มเก็บค่าไฟวันที่  <REC.>` then the DEM. line.
    REC. blank in the sheet → ATA + 3 days.
 4. ISO TANK with DG: only the SPECIAL CONTAINER block, no DEM. line.
-5. Status CFS/CFS or CY/CFS: **split** set (a house B/L `...A`, `...B`, or a master B/L whose house B/Ls
+5. Status CFS/CFS or CY/CFS: **split** set (a house B/L ending in any letter: `...A`, `...B`, `...N` (confirmed 2026-11-11), or a master B/L whose house B/Ls
    are in the job) → no DEM. line. **Single CFS D/O (not split)** → DEM and everything else like CY.
 6. `== ATTACHED RIDER ==` pages (page 2 of a B/L): left as they are (no notes, no stamp). A rider page is
    recognised by the `== ATTACHED RIDER ==` heading and no CARGO DELIVERY ORDER header; a D/O page whose
