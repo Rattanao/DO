@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-11a</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-13a</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -355,6 +355,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
       : "sheet";
     const m = pg.text.match(RE_BL);
     pg.bl = m ? m[0] : lastBl;                 // คำร้อง (page 2) has no B/L: it belongs to the form before it
+    pg.ownBl = !!m;
     lastBl = pg.bl;
   }
   const doBls = new Set(pages.filter(p => p.type === "do").map(p => p.bl));
@@ -419,12 +420,22 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
 
   // merge order: per D/O B/L -> D/O (+ rider) -> ATTACHED -> ใบเปิดตู้ / คำร้อง; pages of other B/Ls stay at the end
   const order = [], used = new Set();
+  let dropped = 0;
   const put = i => { if (!used.has(i)) { used.add(i); order.push(i); } };
   pages.forEach((pg, i) => {
     if (pg.type !== "do" || used.has(i)) return;
     put(i);
     for (let j = i + 1; j < pages.length && pages[j].type === "rider"; j++) put(j);
-    pages.forEach((q, j) => { if (q.type === "sheet" && q.bl === pg.bl) put(j); });
+    // ATTACHED sheets right after the D/O, one copy of each (identical pages dropped), in the user's example order:
+    // the sheet with the B/L no. (UTCT form) -> the sheet without a B/L no. -> the DEPOT sheet
+    const rank = q => /DEPOT/.test(q.text) ? 2 : q.ownBl ? 0 : 1, seen = new Set();
+    pages.map((q, j) => j).filter(j => pages[j].type === "sheet" && pages[j].bl === pg.bl)
+      .sort((a, b) => rank(pages[a]) - rank(pages[b]) || a - b)
+      .forEach(j => {
+        const key = pages[j].text.replace(/\s+/g, " ").trim();
+        if (seen.has(key)) { used.add(j); dropped++; return; }
+        seen.add(key); put(j);
+      });
     pages.forEach((q, j) => { if ((q.type === "open1" || q.type === "open2") && q.bl === pg.bl) put(j); });
   });
   pages.forEach((_, i) => put(i));
@@ -432,7 +443,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
   for (const p of await merged.copyPages(doc, order)) merged.addPage(p);
   const outRows = order.map((i, k) => ({ ...out[i], page: k + 1 }));
 
-  return { rows: outRows, ata, out: await merged.save(), font: fam.css.replace(/"/g, ""), checks: checkForms(pages) };
+  return { rows: outRows, ata, dropped, out: await merged.save(), font: fam.css.replace(/"/g, ""), checks: checkForms(pages) };
 }
 
 // ---------- ใบเปิดตู้ / คำร้อง vs D/O ----------
@@ -594,6 +605,8 @@ async function run(keep) {
     }
     if (keep !== true) { hidden.clear(); $("search").value = ""; }
     render(); renderChecks();
+    const dupNote = report.dropped ? `${report.dropped} duplicate ATTACHED page(s) left out (one copy kept)` : "";
+    if (dupNote && !$("msg").textContent.includes(dupNote)) $("msg").textContent = [$("msg").textContent, dupNote].filter(Boolean).join(" · ");
     preview(Math.min(page, report.rows.length));   // not awaited: the button is usable again at once
   } catch (err) {
     $("msg").textContent = "Failed: " + err.message;
@@ -697,7 +710,7 @@ function renderChecks() {
                      : `<p class="allok">✓ Forms match the D/O on every field (${all.length} B/L)</p>`);
   $("applyFix").classList.toggle("hidden", !bad);
   // warning at the top too, and bring the table into view
-  $("msg").textContent = [fileWarn, autoNote, bad ? `⚠ Forms do not match the D/O in ${bad} field(s) — correct them in the form-check table below` : ""].filter(Boolean).join(" · ");
+  $("msg").textContent = [fileWarn, autoNote, report && report.dropped ? `${report.dropped} duplicate ATTACHED page(s) left out (one copy kept)` : "", bad ? `⚠ Forms do not match the D/O in ${bad} field(s) — correct them in the form-check table below` : ""].filter(Boolean).join(" · ");
   if (bad) $("checkCard").scrollIntoView({ behavior: "smooth", block: "start" });
   $("saveOver").classList.toggle("hidden", !fixedFiles.size || ![...fixedFiles.keys()].some(i => pdfFiles[i] && pdfFiles[i].handle));
   $("saveFixed").classList.toggle("hidden", !fixedFiles.size);

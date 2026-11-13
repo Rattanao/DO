@@ -100,7 +100,7 @@ for path in SRCS:
         m = RE_BL.search(text)
         bl = m.group() if m else last_bl           # คำร้อง (page 2) has no B/L: it belongs to the form before it
         last_bl = bl
-        info.append({"kind": kind, "bl": bl, "text": text, "file": os.path.basename(path),
+        info.append({"kind": kind, "bl": bl, "text": text, "file": os.path.basename(path), "own_bl": bool(m),
                      "lines": lines_of(pg, [c for c in covers if c["pi"] == pi])})
     doc.insert_pdf(src)
 
@@ -169,7 +169,7 @@ for page in doc:
     report.append([page.number, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h)])
 
 # ---------- merge order: per D/O B/L -> D/O (+ rider) -> ATTACHED -> ใบเปิดตู้ / คำร้อง ----------
-order, used = [], set()
+order, used, dropped = [], set(), []
 def put(i):
     if i not in used: used.add(i); order.append(i)
 for i, p in enumerate(info):
@@ -177,8 +177,18 @@ for i, p in enumerate(info):
     put(i)
     j = i + 1
     while j < len(info) and info[j]["kind"] == "rider": put(j); j += 1
-    for k, q in enumerate(info):
-        if q["kind"] == "sheet" and q["bl"] == p["bl"]: put(k)
+    # ATTACHED sheets right after the D/O, one copy of each (identical pages are dropped), in the order
+    # of the user's example (C:\EDI\DO_DEM.pdf): the sheet with the B/L no. (UTCT form) -> the sheet
+    # without a B/L no. -> the DEPOT sheet.
+    seen = set()
+    sheets = [k for k, q in enumerate(info) if q["kind"] == "sheet" and q["bl"] == p["bl"]]
+    def rank(k):
+        q = info[k]
+        return 2 if re.search(r"DEPOT", q["text"]) else 0 if q["own_bl"] else 1
+    for k in sorted(sheets, key=lambda k: (rank(k), k)):
+        key = re.sub(r"\s+", " ", info[k]["text"]).strip()
+        if key in seen: dropped.append(k); used.add(k); continue
+        seen.add(key); put(k)
     for k, q in enumerate(info):
         if q["kind"] in ("open1", "open2") and q["bl"] == p["bl"]: put(k)
 for i in range(len(info)): put(i)
@@ -318,6 +328,8 @@ for i in print_order(pages):
 prn.save(OUT_PRINT, garbage=4, deflate=True)
 for n, r in enumerate(report, 1): print(n, *r[1:], sep=" | ")
 print(f"\nไฟล์ปริ้น x2: {os.path.basename(OUT_PRINT)} ({len(prn)} หน้า)")
+if dropped:
+    print(f"ตัด ATTACHED ที่ซ้ำกันออก {len(dropped)} หน้า (เก็บไว้หน้าละ 1)")
 
 if fixes:
     print(f"\nแก้วันที่ใบเปิดตู้ / คำร้องตาม DO ให้อัตโนมัติแล้ว {len(fixes)} ช่อง: " + ", ".join(f"{o} -> {n}" for _, o, n in fixes))

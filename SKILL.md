@@ -42,6 +42,10 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     never notes twice. A file that is already doubled must be redone from the original DO.
 11. **Merge order** per D/O B/L: D/O (+ its rider pages) → ATTACHED sheet → ใบเปิดตู้ → คำร้อง. Pages of a
     B/L with no D/O go at the end. ATTACHED / ใบเปิดตู้ / คำร้อง pages are never filled.
+    ATTACHED sheets always come right after their D/O, **one copy of each** (identical pages are dropped), in the
+    user's example order (C:\EDI\DO_DEM.pdf, 2026-11-13): the sheet with the B/L no. (UTCT form, ends "FCL") ->
+    the sheet without a B/L no. (starts "UTCT") -> the DEPOT sheet (บีซี2 (BC2 DEPOT)). A sheet listing several
+    B/Ls (master + houses) goes after the first B/L it names.
 12. **ใบเปิดตู้ / คำร้อง check** against the D/O, every mismatch flagged. Only B/Ls that need fixing are listed
     (web table and script output); B/Ls that match on every field are only counted.
     - ชื่อเรือ: D/O "DONGJIN CONFIDENT 0153S" = form "DONGJIN CONFIDENT V.0153S" ("V." ignored)
