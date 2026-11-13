@@ -346,4 +346,4 @@ for bl, heads, rows_ in need:
 if checks:
     print(f"\nตรวจใบเปิดตู้ {len(checks)} B/L: ต้องแก้ {len(need)} B/L ({bad} ช่อง), ตรงทุกหัวข้อ {len(checks) - len(need)} B/L")
 if bad:
-    print("!! แก้ได้บนเว็บ https://rattanao.github.io/DO/ (ตาราง ตรวจใบเปิดตู้)")
+    print("!! แก้ได้บนเว็บ https://rattanao.github.io/DO/do.html (ตาราง ตรวจใบเปิดตู้)")

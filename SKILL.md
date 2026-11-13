@@ -14,7 +14,7 @@ description: >
 
 Rattana's confirmed layout. Run the bundled script; do not place the text by hand.
 
-## Rules (already implemented in the script and in index.html)
+## Rules (already implemented in the script and in do.html)
 
 Every PDF in `input/` is read and each page is classified by its text: D/O (`CARGO DELIVERY ORDER`),
 ATTACHED RIDER (`== ATTACHED RIDER ==`), ใบเปิดตู้ (`ขออนุญาตเปิดตู้คอนเทนเนอร์`), คำร้อง (`อารักขาของศุลกากร`,
@@ -89,14 +89,15 @@ only** (the DG line is not underlined). Pages that already carry a typed annotat
    them before reporting.
 4. Report in Thai: pages per type with their dates, the merge order, and the ใบเปิดตู้ check table; flag any
    page marked `** ไม่มีวันที่ DEM ใน CHECK DEM **` (DEM. is `CHECK` or the B/L is not in the sheet), any
-   skipped page and every `** ไม่ตรง **` form field (fix on https://rattanao.github.io/DO/). Link
+   skipped page and every `** ไม่ตรง **` form field (fix on https://rattanao.github.io/DO/do.html). Link
    `output/DO-DEM.pdf` and `output/DO-DEM-PRINT x 2.pdf`.
 
-For layout changes (size, position, underline) edit `scripts/fill_do.py` and `index.html` together.
+For layout changes (size, position, underline) edit `scripts/fill_do.py` and `do.html` together.
 
 The web pages are in English (the guide is Thai / English with a switch); text printed onto documents stays Thai.
-The web site has two steps (menu at the top): `checkdem.html` (① CHECK DEM, a copy of
-https://github.com/Rattanao/Check-dem's page) and `index.html` (② DO). "ใช้กับ DO ต่อ →" passes the CHECK DEM
+The web site has two steps (menu at the top): `index.html` (① CHECK DEM, the first page the site opens, a copy of
+https://github.com/Rattanao/Check-dem's page) and `do.html` (② DO); ② can be used on its own without ①.
+`checkdem.html` only redirects to `./` (old links and the old Check-dem site point there). "ใช้กับ DO ต่อ →" passes the CHECK DEM
 workbook to the DO page by itself as soon as it is calculated (localStorage `doCheckDem`). It stays on the DO page
 (refresh, "Clear" on DO) until "Clear files" on ①; a CHECK DEM dropped on DO by hand wins. A DO page already open in
 another tab takes it at once and re-processes its D/O files.

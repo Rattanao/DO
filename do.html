@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DO</title>
+<link rel="icon" href="assets/hal-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+  :root {
+    --navy: #1f3864; --navy-soft: #d9e1f2; --bg: #f3f5f9; --card: #ffffff;
+    --text: #1d2433; --muted: #5b6474; --line: #d5dae3; --stripe: #f7f9fc;
+    --red: #c00000;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Sarabun", Tahoma, sans-serif; background: var(--bg); color: var(--text); }
+  header { background: var(--navy); color: #fff; padding: 18px 16px; }
+  header .wrap { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  header .brand { background: #fff; border-radius: 6px; padding: 5px 10px; display: inline-flex; line-height: 0; flex: 0 0 auto; }
+  header .brand img { height: 30px; width: auto; display: block; }
+  header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
+  header p { margin: 0; opacity: .8; font-size: 15px; }
+  header .by { margin-left: auto; font-weight: 700; font-size: 15px; text-align: right; line-height: 1.5; align-self: center; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  main { padding: 20px 16px 40px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 18px; }
+  .inputs { display: grid; grid-template-columns: 1fr 1fr 130px auto; gap: 14px; align-items: end; }
+  .inputs .wide { grid-column: span 2; }
+  @media (max-width: 820px) { .inputs { grid-template-columns: 1fr; } .inputs .wide { grid-column: auto; } }
+  .inputs > div { min-width: 0; }
+  label.t small { font-weight: 400; color: var(--muted); }
+  input[type=date] { width: 100%; font: inherit; font-size: 16px; padding: 9px; border: 1px solid var(--line); border-radius: 8px; }
+  td input[type=date] { width: auto; font-size: 14px; padding: 4px 6px; }
+  td.bad input[type=date] { border-color: #fff; }
+  label.t { display: block; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .drop { border: 2px dashed #9aa8c3; border-radius: 8px; padding: 14px; text-align: center; cursor: pointer; background: #fafbfd; transition: .15s; }
+  .drop.over { background: var(--navy-soft); border-color: var(--navy); }
+  .drop b { color: var(--navy); }
+  input[type=number] { width: 100%; font: inherit; font-size: 17px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
+  button { font: inherit; font-weight: 600; font-size: 16px; border: 0; border-radius: 8px; padding: 12px 20px; cursor: pointer; background: var(--navy); color: #fff; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.ghost { background: #fff; color: var(--navy); border: 1px solid var(--navy); }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .rules { font-size: 14px; color: var(--muted); margin: 12px 0 0; line-height: 1.6; }
+  .rules code { background: var(--navy-soft); color: var(--navy); padding: 1px 6px; border-radius: 4px; }
+  .msg { color: var(--red); font-weight: 600; margin-top: 10px; }
+  .info { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+  .info div { padding: 8px 14px; border-right: 1px solid var(--line); }
+  .info .k { background: var(--navy-soft); color: var(--navy); font-weight: 700; }
+  .info .ata { font-weight: 700; font-size: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .chip { border-radius: 999px; padding: 6px 14px; font-weight: 600; border: 1px solid rgba(0,0,0,.08); cursor: pointer; user-select: none; }
+  .chip.off { opacity: .35; }
+  .chip small { font-weight: 400; margin-left: 6px; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .toolbar input { font: inherit; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; min-width: 240px; flex: 1; }
+  .tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th { background: var(--navy); color: #fff; padding: 10px 8px; position: sticky; top: 0; white-space: nowrap; }
+  td { padding: 7px 10px; border-top: 1px solid var(--line); white-space: nowrap; text-align: center; }
+  tbody tr { cursor: pointer; }
+  tbody tr:nth-child(even) td { background: var(--stripe); }
+  tbody tr.sel td { background: var(--navy-soft) !important; }
+  td.l { text-align: left; }
+  td.b { font-weight: 700; }
+  td.kind { font-weight: 700; }
+  td.bad { background: #ff0000 !important; color: #fff; font-weight: 700; }
+  .preview { margin-top: 14px; text-align: center; }
+  .preview canvas { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; }
+  .preview p { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+  .hidden { display: none; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding-bottom: 24px; }
+  footer a { color: var(--navy); }
+  .stepnav { background: #fff; border-bottom: 1px solid var(--line); }
+  .stepnav .wrap { display: flex; gap: 6px; align-items: center; padding: 8px 16px; flex-wrap: wrap; }
+  .stepnav a { text-decoration: none; color: var(--navy); font-weight: 600; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); }
+  .stepnav a.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .stepnav span { color: var(--muted); }
+  h2.ct { margin: 0 0 12px; font-size: 19px; color: var(--navy); }
+  .chk { margin-bottom: 14px; }
+  .chk h3 { margin: 0 0 6px; font-size: 16px; }
+  .chk td { white-space: normal; text-align: left; }
+  .chk td.ok { background: #c6efce !important; color: #006100; font-weight: 700; text-align: center; }
+  .chk td.ng { background: #ffc7ce !important; color: #9c0006; font-weight: 700; text-align: center; }
+  .chk td.wrong { background: #ffc7ce !important; }
+  .chk input.fix { font: inherit; font-size: 14px; padding: 4px 6px; border: 2px solid var(--red); border-radius: 6px; width: 100%; min-width: 180px; margin-top: 4px; }
+  .fixmsg { font-weight: 600; color: var(--navy); }
+  .allok { background: #c6efce; color: #006100; font-weight: 700; padding: 10px 14px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<header><div class="wrap"><span class="brand"><img src="assets/hal-logo.png" alt="Heung A Line"></span><h1>DO</h1><p>Fill DEM / reefer power / SPECIAL CONTAINER notes on Delivery Orders</p><span class="by">Project by Ms. Rattana Mudlae<br>Position Import DOC.</span></div></header>
+
+<nav class="stepnav"><div class="wrap"><a href="./">① CHECK DEM</a><span>→</span><a href="do.html" class="on">② DO</a><span style="margin-left:auto"></span><a href="guide.html">Guide</a></div></nav>
+
+<main class="wrap">
+  <section class="card">
+    <div class="inputs">
+      <div class="wide">
+        <label class="t">DO / ATTACHED / container-opening form (.pdf) <small>several files, any order — sorted for you</small></label>
+        <div class="drop" id="dropPdf"><span id="pdfText">Drop files here or <b>click to choose</b></span></div>
+        <input type="file" id="filePdf" accept=".pdf" multiple class="hidden">
+      </div>
+      <div class="wide">
+        <label class="t">CHECK DEM file (.xlsx) <small>optional</small></label>
+        <div class="drop" id="dropXls"><span id="xlsText">Drop a file here or <b>click to choose</b></span></div>
+        <input type="file" id="fileXls" accept=".xlsx,.xls" class="hidden">
+      </div>
+      <div>
+        <label class="t" for="demAll">DEM. date</label>
+        <input type="date" id="demAll" autocomplete="off">
+      </div>
+      <div>
+        <label class="t" for="recAll">Reefer power date</label>
+        <input type="date" id="recAll" autocomplete="off">
+      </div>
+      <div>
+        <label class="t" for="size">Font size</label>
+        <input type="number" id="size" value="15.5" min="8" max="24" step="0.5">
+      </div>
+      <div class="btns">
+        <button id="run" disabled>Process</button>
+        <button id="clear" class="ghost" disabled>Clear files</button>
+      </div>
+    </div>
+    <p class="rules">
+      <b>Every D/O</b>: DEM start date ·
+      <b>DG</b> (<code>UN</code> / <code>CLASS</code>): adds SPECIAL CONTAINER ·
+      <b>Reefer</b> (<code>20RF</code> / <code>40RH</code> / <code>TEMP</code>): adds the power-charge start date ·
+      <b>ISO TANK + DG</b>: SPECIAL CONTAINER only ·
+      <b>CFS split</b> (master B/L + A, B, C…): no DEM · <b>Single CFS</b>: same as CY ·
+      <b>ATTACHED RIDER</b> pages: left as they are<br>
+      <b>Merge</b>: per B/L, DO → ATTACHED → container-opening form / removal request ·
+      <b>Form check</b>: vessel, arrival date (auto-corrected to the D/O), CNTR, CNEE, B/L NO., STATUS (FCL = CY, CFS = devanning, LCL = transport)<br>
+      <b>Print x2</b>: CY two of each B/L in a row (1,1,2,2) · CFS two sets per master B/L (A,B,C,A,B,C)<br>
+      <b>Dates</b>: from CHECK DEM, or type DEM. and/or reefer power above and press <b>Process</b>
+      (used for every B/L without a CHECK DEM date) · change one B/L in the table, then press <b>Process</b> ·
+      reefer power with no date at all = ATA + 3 days<br>
+      Files are processed in your browser only — nothing is uploaded.
+    </p>
+    <div class="msg" id="msg"></div>
+  </section>
+
+  <section class="card hidden" id="checkCard">
+    <h2 class="ct">Container-opening form / removal request vs D/O</h2>
+    <div id="checks"></div>
+    <div class="toolbar" id="fixBar">
+      <button id="applyFix">Correct the form with these values</button>
+      <button id="saveOver" class="ghost hidden">Save over the original file</button>
+      <button id="saveFixed" class="ghost hidden">Download corrected form</button>
+      <span id="fixMsg" class="fixmsg"></span>
+    </div>
+  </section>
+
+  <section class="card hidden" id="result">
+    <div class="info" id="info"></div>
+    <div class="chips" id="chips"></div>
+    <div class="toolbar">
+      <input type="search" id="search" autocomplete="off" placeholder="Search B/L No. / date">
+      <button id="download">Download DO-DEM.pdf (x1 + x2)</button>
+      <button id="print" class="ghost">Print x2</button>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Page</th><th>B/L No.</th><th>Type</th><th>Reefer power</th><th>DEM.</th><th>Note added</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+    <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
+  </section>
+</main>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-13b</footer>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const OUTPUT_NAME = "DO-DEM.pdf";
+const PRINT_NAME = "DO-DEM-PRINT x 2.pdf";     // x2 copy in print order
+const REEFER_POWER_DAYS = 3;          // REC. blank in CHECK DEM -> ATA + 3 days
+const X = 46;                         // left edge of the notes, pt
+const SCALE = 6;                      // canvas px per pt (notes are embedded as images so Thai is shaped by the browser)
+// same rules as scripts/fill_do.py
+const RE_BL = /HASL\w+/;
+const RE_DG = /\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCLASS\s*:?\s*\d|\bCL\s*\d/;
+const RE_REEFER = /\b(20|40|45)R[FH]|\bTEMP\b/;
+const RE_TANK = /ISO\s*TANK|\b\d\dTK\b/;
+const RE_STATUS = /\b(CY|CFS)\s*\/\s*(CY|CFS)\b/;
+const KINDS = { "GENERAL": "DDEBF7", "DG": "FFE0B2", "REEFER": "C8E6C9", "REEFER+DG": "E1BEE7", "ISO TANK+DG": "FFCDD2", "ATTACHED RIDER": "BBDEFB", "ATTACHED SHEET": "D1C4E9", "OPENING FORM": "FFF59D", "REMOVAL REQUEST": "FFF59D", "SKIPPED": "E0E0E0" };
+const MARK = "DO-DEM-FILLED";         // invisible text on every page we fill (same as scripts/fill_do.py)
+const DONE = /DO-DEM-FILLED|CERTIFIED\s*TRUE\s*&\s*CORRECT\s*COPY|เริ่มเก็บค่า/;   // marker, or the old stamp / note in older outputs
+const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const SPECIAL = [[["SPECIAL CONTAINER", false]], [[".......DG..........OP..........FR", false]]];
+const $ = id => document.getElementById(id);
+let pdfFiles = [], xlsFile = null;    // {name, bytes}
+let report = null;                    // {rows, ata, out, name}
+let overrides = {};                   // page no. -> {dem, rec} typed into the table
+let fileWarn = "";                    // files that were not a real PDF / Excel
+const fromInput = v => { if (!v) return null; const [y, m, d] = v.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const toInput = d => d ? `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` : "";
+const hidden = new Set();
+
+const escapeHtml = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const pad = n => String(n).padStart(2, "0");
+const fmt = d => `${pad(d.getUTCDate())}-${MON[d.getUTCMonth()]}-${d.getUTCFullYear()}`;
+const dmy = d => `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
+const addDays = (d, n) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + n));
+function toDate(v) {                  // Excel serial -> UTC date; anything else (blank, "CHECK") -> null
+  if (typeof v !== "number") return null;
+  const p = XLSX.SSF.parse_date_code(v);
+  return p ? new Date(Date.UTC(p.y, p.m - 1, p.d)) : null;
+}
+
+// ---------- read CHECK DEM ----------
+function readCheckDem(bytes) {
+  const wb = XLSX.read(bytes, { type: "array" });
+  const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null });
+  const norm = v => String(v ?? "").trim();
+  const h = grid.findIndex(r => r.some(v => norm(v) === "B/L No."));
+  if (h < 0) throw new Error("No \"B/L No.\" heading in the CHECK DEM file");
+  const col = name => grid[h].findIndex(v => norm(v) === name);
+  const cBl = col("B/L No."), cRec = col("REC."), cDem = col("DEM.");
+  if (cDem < 0) throw new Error("No \"DEM.\" heading in the CHECK DEM file");
+  let ata = null;
+  for (const r of grid.slice(0, h)) { const i = r.findIndex(v => norm(v) === "ATA"); if (i >= 0) ata = toDate(r[i + 1]); }
+  const rows = {};
+  for (const r of grid.slice(h + 1)) if (norm(r[cBl])) rows[norm(r[cBl])] = { rec: cRec >= 0 ? toDate(r[cRec]) : null, dem: toDate(r[cDem]) };
+  return { ata, rows };
+}
+
+// ---------- note image ----------
+function fontFamily() {               // Angsana New when installed (Windows), otherwise Sarabun at a matching visual size
+  const c = document.createElement("canvas").getContext("2d"), t = "เริ่มเก็บค่า DEM.";
+  c.font = 'bold 40px "Angsana New", monospace'; const a = c.measureText(t).width;
+  c.font = "bold 40px monospace";
+  return a !== c.measureText(t).width ? { css: '"Angsana New"', k: 1 } : { css: "Sarabun", k: .68 };
+}
+// lines = [[ [text, underline], ... ], ...]  ->  {png, w, h} in pt; first baseline at .9 * size below the top
+function noteImage(lines, size, fam) {
+  const lineH = 1.05 * size, font = `bold ${size * fam.k * SCALE}px ${fam.css}, Sarabun, Tahoma`;
+  const m = document.createElement("canvas").getContext("2d"); m.font = font;
+  const w = Math.max(...lines.map(l => m.measureText(l.map(s => s[0]).join("")).width)) / SCALE + 4;
+  const h = lines.length * lineH + .5 * size;
+  const cv = document.createElement("canvas"); cv.width = Math.ceil(w * SCALE); cv.height = Math.ceil(h * SCALE);
+  const c = cv.getContext("2d"); c.font = font; c.fillStyle = "#000"; c.textBaseline = "alphabetic";
+  lines.forEach((l, i) => {
+    let x = 0; const y = (.9 * size + i * lineH) * SCALE;
+    for (const [text, underline] of l) {
+      const tw = c.measureText(text).width;
+      c.fillText(text, x, y);
+      if (underline) c.fillRect(x, y + .13 * size * SCALE, tw, .05 * size * SCALE);
+      x += tw;
+    }
+  });
+  return { png: cv.toDataURL("image/png"), w, h };
+}
+
+// ---------- fill ----------
+// Older versions of this page stamped "CERTIFIED TRUE & CORRECT COPY" / a round seal with pdf-lib's
+// embedPdf, whose XObjects are always named EmbeddedPdfPage-<n>. Nothing else we (or the D/O system)
+// draw uses that name, so blanking those XObjects removes the old stamps from a file fed back in.
+function stripOldStamps(doc, page) {
+  const res = page.node.Resources();
+  const xo = res && res.lookupMaybe(PDFLib.PDFName.of("XObject"), PDFLib.PDFDict);
+  if (!xo) return 0;
+  let n = 0;
+  for (const [name, ref] of xo.entries()) {
+    if (name.toString().startsWith("/EmbeddedPdfPage-") && ref instanceof PDFLib.PDFRef) {
+      doc.context.assign(ref, doc.context.formXObject([], { BBox: [0, 0, 1, 1] }));
+      n++;
+    }
+  }
+  return n;
+}
+
+// Cover-ups made by "แก้ไขใบเปิดตู้" are listed in the PDF Keywords (DOCOVERS:<json>): {pi, x, y, w, h, base}.
+// Text under a cover-up that was on the page before it (item index < base) is ignored when reading.
+function readCovers(pdfDoc) {
+  try { const k = pdfDoc.getKeywords() || ""; const m = k.match(/DOCOVERS:(\[.*\])/); return m ? JSON.parse(m[1]) : []; } catch { return []; }
+}
+const underCover = (i, idx, covers) => covers.some(c => idx < c.base && i.transform[4] >= c.x - 1 && i.transform[4] < c.x + c.w - 1 && Math.abs(i.transform[5] - c.y) < c.h * 0.6);
+
+// ---------- page reading ----------
+const clean = s => s.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, " ");
+const norm = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+// pdf.js may give one item per word: rebuild text lines (same baseline, items left to right)
+function buildLines(items) {
+  const lines = [];
+  for (const i of [...items].sort((a, b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4])) {
+    const y = i.transform[5], x = i.transform[4];
+    let l = lines.find(l => Math.abs(l.y - y) < 1.5 && x >= l.x1 - 1 && x - l.x1 < 15);
+    if (!l) lines.push(l = { y, x0: x, x1: x, raw: "", segs: [], h: Math.abs(i.transform[3]) || i.height || 10 });
+    const s = clean(i.str);
+    l.segs.push({ a: l.raw.length, b: l.raw.length + s.length, x, w: i.width });
+    l.raw += s; l.x1 = x + i.width;
+  }
+  lines.forEach(l => l.str = l.raw.replace(/\s+/g, " ").trim());
+  return lines.filter(l => l.str);
+}
+// x position of character index k in a line's raw text (items are spread evenly over their width)
+function xAt(l, k) {
+  const s = l.segs.find(s => k >= s.a && k <= s.b) || l.segs[l.segs.length - 1];
+  return s.x + (s.b > s.a ? s.w * (k - s.a) / (s.b - s.a) : 0);
+}
+// first regex match in a line: its text and exactly where it sits (so an edit covers only that value)
+function hit(l, re) {
+  const m = l.raw.match(re);
+  if (!m) return null;
+  const a = m.index, b = m.index + m[0].replace(/\s+$/, "").length;
+  return { val: m[0].replace(/\s+/g, " ").trim(), x: xAt(l, a), w: xAt(l, b) - xAt(l, a) };
+}
+// value under a D/O field label: lines starting just below it, in the label's column
+function under(lines, labelRe, maxDrop, width) {
+  const lab = lines.find(l => labelRe.test(l.str));
+  if (!lab) return "";
+  return lines.filter(l => lab.y - l.y > 4 && lab.y - l.y < maxDrop && l.x0 >= lab.x0 - 3 && l.x0 < lab.x0 + width)
+              .sort((a, b) => b.y - a.y).map(l => l.str).join(" ");
+}
+const RE_CNTR = /\b[A-Z]{3}[UJZ]\d{7}\b/g;   // owner code + U/J/Z + 7 digits, whole word (not inside a B/L no.)
+const RE_VESSEL = /[A-Z][A-Z0-9.&\- ]*?\s+V\s*\.\s*[A-Z0-9]+/;   // "DONGJIN CONFIDENT V.0153S" (Thai text around it is left out)
+const vesselKey = s => norm(String(s).replace(/\bV\s*\.\s*(?=\w)/, ""));   // ignore "V." before the voyage
+const STATUS_TH = { FCL: "FCL (CY)", CFS: "CFS = devanning", LCL: "LCL = transport" };
+
+// ---------- fill ----------
+// pdfs: [{name, bytes, handle?}] in any order (D/O, ATTACHED, ใบเปิดตู้); xlsBytes may be null (dates typed in instead)
+// dates: {dem, rec} for every B/L without a date in CHECK DEM; ov: source page no. -> {dem, rec} for one B/L
+async function fill(pdfs, xlsBytes, size, dates, ov) {
+  const { ata, rows } = xlsBytes ? readCheckDem(xlsBytes) : { ata: null, rows: {} };
+  await document.fonts.load("700 20px Sarabun", "เริ่ม");
+  const fam = fontFamily();
+  const doc = await PDFLib.PDFDocument.create(), pages = [];
+  for (let fi = 0; fi < pdfs.length; fi++) {
+    const f = pdfs[fi];
+    const one = await PDFLib.PDFDocument.load(f.bytes);
+    const covers = readCovers(one);
+    for (const pg of await doc.copyPages(one, one.getPageIndices())) doc.addPage(pg);
+    const src = await pdfjsLib.getDocument({ data: f.bytes.slice() }).promise;
+    for (let i = 1; i <= src.numPages; i++) pages.push({ fi, pi: i - 1, p: src.getPage(i), covers: covers.filter(c => c.pi === i - 1) });
+  }
+  // pass 1: what each page is
+  let lastBl = "?";
+  for (const pg of pages) {
+    pg.p = await pg.p;
+    const raw = (await pg.p.getTextContent()).items;
+    pg.rawCount = raw.length;
+    pg.items = raw.filter((i, idx) => clean(i.str).trim() && !underCover(i, idx, pg.covers));
+    for (const c of pg.covers) if (c.v) pg.items.push({ str: c.v, transform: [c.h, 0, 0, c.h, c.x, c.y], width: c.vw || c.w, height: c.h });
+    pg.text = pg.items.map(i => clean(i.str)).join("\n");
+    pg.lines = buildLines(pg.items);
+    const isDo = /CARGO\s*DELIVERY\s*ORDER/.test(pg.text);
+    pg.type = isDo ? "do"
+      : /=\s*ATTACHED\s*RIDER\s*=/.test(pg.text) ? "rider"
+      : /เปิดตู้คอนเทนเนอร์/.test(pg.text) ? "open1"
+      : /อารักขาของศุลกากร/.test(pg.text) ? "open2"
+      : "sheet";
+    const m = pg.text.match(RE_BL);
+    pg.bl = m ? m[0] : lastBl;                 // คำร้อง (page 2) has no B/L: it belongs to the form before it
+    pg.ownBl = !!m;
+    lastBl = pg.bl;
+  }
+  const doBls = new Set(pages.filter(p => p.type === "do").map(p => p.bl));
+  // CFS rule (trial 2026-11-02): only a split set (house B/L ...A/...B, or a master with houses in the job) goes without DEM
+  const isSplit = bl => /[A-Z]$/.test(bl) || [...doBls].some(b => b !== bl && b.slice(0, -1) === bl && /[A-Z]$/.test(b));
+
+  // pass 2: fill D/O pages
+  const cache = new Map(), out = [];
+  for (let n = 1; n <= pages.length; n++) {
+    const pg = pages[n - 1], text = pg.text, bl = pg.bl;
+    const master = /[A-Z]$/.test(bl) ? bl.slice(0, -1) : bl, prevRow = out[out.length - 1];
+    if (pg.type === "sheet" || pg.type === "open1" || pg.type === "open2") {
+      const kind = { sheet: "ATTACHED SHEET", open1: "OPENING FORM", open2: "REMOVAL REQUEST" }[pg.type];
+      out.push({ page: n, src: n, bl, master, attach: true, cfs: false, kind, note: "not filled (checked in the table above)" }); continue;
+    }
+    const rider = pg.type === "rider";
+    const unstamped = stripOldStamps(doc, doc.getPage(n - 1)) ? " · old stamp removed" : "";
+    if (DONE.test(text)) {
+      const st0 = text.match(RE_STATUS);
+      out.push({ page: n, src: n, bl, master, rider, attach: rider, cfs: rider ? !!(prevRow && prevRow.cfs) : !!st0 && st0[2] === "CFS",
+                 kind: "SKIPPED", note: "already filled" + unstamped }); continue;
+    }
+    doc.getPage(n - 1).drawText(MARK, { x: 1, y: 1, size: 1, opacity: 0 });
+    if (rider) {
+      out.push({ page: n, src: n, bl, master, rider: true, attach: true, cfs: prevRow ? prevRow.cfs : false, kind: "ATTACHED RIDER", note: "left as it is" + unstamped }); continue;
+    }
+    const st = text.match(RE_STATUS), cfs = !!st && st[2] === "CFS";
+    const status = st ? st[0].replace(/\s/g, "") : "";
+    const noDem = cfs && isSplit(bl);
+    if ((await pg.p.getAnnotations()).some(a => a.subtype === "FreeText")) {
+      out.push({ page: n, src: n, bl, master, cfs, kind: "SKIPPED", note: "has a typed note already" }); continue;
+    }
+    const key0 = bl in rows ? bl : master in rows ? master : null;
+    const row = rows[key0] || {}, o = ov[n] || {};
+    const dem = o.dem || row.dem || dates.dem || null;
+    const dg = RE_DG.test(text), reefer = RE_REEFER.test(text), tank = RE_TANK.test(text);
+    const demLine = dem && !noDem ? [[["เริ่มเก็บค่า DEM. วันที่.  ", false], [fmt(dem) + " ", true]]] : null;
+    let kind, parts, rec = null;
+    if (tank && dg) { kind = "ISO TANK+DG"; parts = [[700, SPECIAL]]; }
+    else if (reefer) {
+      rec = o.rec || row.rec || dates.rec || (ata ? addDays(ata, REEFER_POWER_DAYS) : null);
+      const recLine = rec ? [[["เริ่มเก็บค่าไฟวันที่  ", false], [" " + fmt(rec) + " ", true]]] : null;
+      kind = "REEFER"; parts = [[704, recLine], [740, demLine]];
+      if (dg) { kind = "REEFER+DG"; parts = [[684, SPECIAL], ...parts.map(([y, l]) => [y + 20, l])]; }
+    }
+    else if (dg) { kind = "DG"; parts = [[690, SPECIAL], [760, demLine]]; }
+    else { kind = "GENERAL"; parts = [[728, demLine]]; }
+    const page = doc.getPage(n - 1), H = page.getHeight();
+    for (const [y, lines] of parts) {
+      if (!lines) continue;
+      const key = JSON.stringify(lines);
+      if (!cache.has(key)) { const im = noteImage(lines, size, fam); cache.set(key, { ...im, ref: await doc.embedPng(im.png) }); }
+      const im = cache.get(key);
+      page.drawImage(im.ref, { x: X, y: H - y - im.h, width: im.w, height: im.h });
+    }
+    const missing = kind !== "ISO TANK+DG" && !noDem && !dem;
+    out.push({ page: n, src: n, bl, master, kind, rec, dem, missing, cfs, noDem, status, inSheet: key0 !== null, reefer,
+               recMissing: reefer && !rec,
+               note: (cfs ? (noDem ? "CFS split · " : "single CFS, filled like CY · ") : "") +
+                     parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") });
+  }
+
+  // merge order: per D/O B/L -> D/O (+ rider) -> ATTACHED -> ใบเปิดตู้ / คำร้อง; pages of other B/Ls stay at the end
+  const order = [], used = new Set();
+  let dropped = 0;
+  const put = i => { if (!used.has(i)) { used.add(i); order.push(i); } };
+  pages.forEach((pg, i) => {
+    if (pg.type !== "do" || used.has(i)) return;
+    put(i);
+    for (let j = i + 1; j < pages.length && pages[j].type === "rider"; j++) put(j);
+    // ATTACHED sheets right after the D/O, one copy of each (identical pages dropped), in the user's example order:
+    // the sheet with the B/L no. (UTCT form) -> the sheet without a B/L no. -> the DEPOT sheet
+    const rank = q => /DEPOT/.test(q.text) ? 2 : q.ownBl ? 0 : 1, seen = new Set();
+    pages.map((q, j) => j).filter(j => pages[j].type === "sheet" && pages[j].bl === pg.bl)
+      .sort((a, b) => rank(pages[a]) - rank(pages[b]) || a - b)
+      .forEach(j => {
+        const key = pages[j].text.replace(/\s+/g, " ").trim();
+        if (seen.has(key)) { used.add(j); dropped++; return; }
+        seen.add(key); put(j);
+      });
+    pages.forEach((q, j) => { if ((q.type === "open1" || q.type === "open2") && q.bl === pg.bl) put(j); });
+  });
+  pages.forEach((_, i) => put(i));
+  const merged = await PDFLib.PDFDocument.create();
+  for (const p of await merged.copyPages(doc, order)) merged.addPage(p);
+  const outRows = order.map((i, k) => ({ ...out[i], page: k + 1 }));
+
+  return { rows: outRows, ata, dropped, out: await merged.save(), font: fam.css.replace(/"/g, ""), checks: checkForms(pages) };
+}
+
+// ---------- ใบเปิดตู้ / คำร้อง vs D/O ----------
+// one block per B/L that has a form: rows = fields, each with the D/O value and what every form page says
+function checkForms(pages) {
+  const blocks = [];
+  for (const [di, d] of pages.entries()) {
+    if (d.type !== "do") continue;
+    // containers can be listed on the D/O's ATTACHED RIDER pages ("AS PER ATTACHED RIDER")
+    let riderText = "";
+    for (let j = di + 1; j < pages.length && pages[j].type === "rider"; j++) riderText += "\n" + pages[j].text;
+    const forms = pages.filter(p => (p.type === "open1" || p.type === "open2") && p.bl === d.bl);
+    if (!forms.length) continue;
+    const st = d.text.match(RE_STATUS);
+    const doF = {
+      vessel: under(d.lines, /^Ocean\s*Vessel/i, 20, 150),
+      cntr: [...new Set((d.text + riderText).match(RE_CNTR) || [])].join(", "),
+      cnee: under(d.lines, /^Consignee$/i, 60, 250),
+      bl: d.bl,
+      status: st ? st[0].replace(/\s/g, "") : ((d.text.match(/\bLCL\s*(\(\s*\w+\s*\))?/) || [""])[0].replace(/\s/g, "")),
+      date: (d.text.match(/Arrival\s*Date\s*:?\s*(\d{4}\.\d{1,2}\.\d{1,2})/) || [])[1] || "",
+    };
+    const fields = [
+      ["vessel", "Vessel"], ["date", "Arrival date"], ["cntr", "CNTR"], ["cnee", "CNEE"], ["bl", "B/L NO."], ["status", "STATUS"],
+    ].map(([key, label]) => ({ key, label, doVal: doF[key], cells: [] }));
+    for (const f of forms) {
+      const L = f.lines;
+      // where a value sits: whole line, or (h = hit(...)) just the matched part of the line
+      const at = (l, h) => l && { fi: f.fi, pi: f.pi, base: f.rawCount, x: h ? h.x : l.x0, y: l.y, w: h ? h.w : l.x1 - l.x0, h: l.h };
+      const find = re => { for (const l of L) { const h = hit(l, re); if (h) return { l, h }; } return null; };
+      const ves = find(RE_VESSEL);
+      const cntrs = [...new Set(f.text.match(RE_CNTR) || [])];
+      const cn = find(/\b[A-Z]{3}[UJZ]\d{7}\b/);
+      const cneeLab = L.find(l => /^CNEE:?$/.test(l.str));
+      let cneeL = cneeLab ? L.filter(l => cneeLab.y - l.y > 4 && cneeLab.y - l.y < 30 && Math.abs(l.x0 - cneeLab.x0) < 20).sort((a, b) => b.y - a.y)[0] : null;
+      if (!cneeL) cneeL = L.find(l => norm(l.str) === norm(doF.cnee)) || L.find(l => /CO\.?,?\s*LTD|LIMITED|COMPANY/.test(l.str) && !/HEUNG A LINE/.test(l.str));
+      // a long consignee wraps onto the next line(s) ("THAI SAMSUNG ELECTRONICS" / "CO.,LTD."): take them all
+      const cneeMore = [];
+      if (cneeL && cneeLab) {
+        let prev = cneeL;
+        for (const l of L.filter(l => l.y < cneeL.y && Math.abs(l.x0 - cneeL.x0) < 20).sort((a, b) => b.y - a.y)) {
+          if (prev.y - l.y > prev.h * 1.8 || cneeMore.length >= 2 || /^(ONE|B\/L|STATUS)\b/.test(l.str)) break;
+          cneeMore.push(l); prev = l;
+        }
+      }
+      const blh = find(/HASL\w+/);
+      const stH = find(/\b(FCL|LCL|CFS)\b(\s*\([^)]*\))?/);
+      const dt = find(/\b\d{1,2}[-\s][A-Za-z]{3}[-\s]\d{2,4}\b/);
+      const got = {
+        vessel: ves ? { val: ves.h.val, at: at(ves.l, ves.h) } : null,
+        cntr: cntrs.length ? { val: cntrs.join(", "), at: cntrs.length === 1 && cn ? at(cn.l, cn.h) : null } : null,
+        cnee: cneeL ? { val: [cneeL, ...cneeMore].map(l => l.str).join(" "),
+                        at: { ...at(cneeL), more: cneeMore.map(l => ({ x: l.x0, y: l.y, w: l.x1 - l.x0, h: l.h })) } } : null,
+        bl: blh ? { val: blh.h.val, at: at(blh.l, blh.h) } : null,
+        status: stH ? { val: stH.h.val, at: at(stH.l, stH.h) } : null,
+        date: dt ? { val: dt.h.val, at: at(dt.l, dt.h) } : null,
+      };
+      for (const fd of fields) {
+        const g = got[fd.key];
+        fd.cells.push({ page: f.type === "open1" ? "OPENING FORM" : "REMOVAL REQUEST", ...(g || { val: null }), ok: g ? same(fd.key, fd.doVal, g.val) : null });
+      }
+    }
+    blocks.push({ bl: d.bl, fields });
+  }
+  return blocks;
+}
+const MON3 = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+// "2026.11.04" or "4-Nov-26" -> "2026-11-04"
+function ymdOf(s) {
+  let m = String(s).match(/(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+  m = String(s).match(/(\d{1,2})[-\s]([A-Za-z]{3})[-\s](\d{2,4})/);
+  if (!m) return "";
+  const mo = MON3.indexOf(m[2].toUpperCase()) + 1, y = m[3].length === 2 ? "20" + m[3] : m[3];
+  return mo ? `${y}-${String(mo).padStart(2, "0")}-${m[1].padStart(2, "0")}` : "";
+}
+const RE_COMPANY_END = /(CO\.?\s*,?\s*LTD\.?|LIMITED|LTD\.?|INC\.?|CORP(ORATION)?\.?|COMPANY|PCL\.?|PLC\.?)\s*$/i;
+function same(key, doVal, formVal) {
+  if (key === "date") return !!ymdOf(doVal) && ymdOf(doVal) === ymdOf(formVal);
+  if (key === "vessel") return vesselKey(doVal) === vesselKey(formVal);
+  if (key === "cntr") return norm(doVal.split(", ").sort().join()) === norm(formVal.split(", ").sort().join());
+  if (key === "status") {
+    const d = String(doVal).toUpperCase(), f = (String(formVal).match(/\b(FCL|LCL|CFS)\b/) || [])[1];
+    if (/\/CY$/.test(d)) return f === "FCL";                     // CY/CY and CFS/CY = FCL
+    if (/CFS$/.test(d)) return f === "CFS" || f === "LCL";   // CFS = เปิดตู้, LCL = ขนส่ง
+    if (/LCL/.test(d)) return f === "LCL";                    // D/O LCL(AGENT) -> ใบเปิด LCL (ขนส่ง)
+    return false;
+  }
+  // the D/O consignee box may go on with an address line: a full company name on the form that starts it is fine
+  if (key === "cnee") return norm(doVal) === norm(formVal) ||
+    (RE_COMPANY_END.test(formVal) && norm(doVal).startsWith(norm(formVal)));
+  return norm(doVal) === norm(formVal);
+}
+// what to write on the form when a field is wrong (D/O value, in the form's own style)
+function suggest(key, doVal, formVal) {
+  if (key === "date") {                                   // write it the form's way: 4-Nov-26
+    const m = String(doVal).match(/(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+    if (m) { const mon = MON3[+m[2] - 1]; return `${+m[3]}-${mon[0]}${mon.slice(1).toLowerCase()}-${m[1].slice(2)}`; }
+  }
+  if (key === "vessel") { const m = String(doVal).match(/^(.*?)\s+(\S+)$/); return m ? `${m[1]} V.${m[2]}` : doVal; }
+  if (key === "status") return /\/CY$/i.test(doVal) ? "FCL" : /CFS$/i.test(doVal) ? "CFS (เปิดตู้)" : /LCL/i.test(doVal) ? "LCL (ขนส่งแรงงาน-เรือ)" : formVal;
+  return doVal;
+}
+
+// ---------- render ----------
+function render() {
+  const { rows, ata, name, font } = report;
+  const bad = rows.filter(x => x.missing || x.recMissing).length;
+  $("info").innerHTML =
+    `<div class="k">Source</div><div>${escapeHtml(name)}</div>` +
+    `<div class="k">ATA</div><div class="ata">${ata ? dmy(ata) : "-"}</div>` +
+    `<div class="k">Pages</div><div>${rows.length}</div>` +
+    `<div class="k">Font</div><div>${escapeHtml(font)}</div>` +
+    (bad ? `<div class="k" style="color:var(--red)">No date yet</div><div style="color:var(--red);font-weight:700">${bad} page(s) (fill the red cells)</div>` : "");
+  const counts = {};
+  rows.forEach(x => counts[x.kind] = (counts[x.kind] || 0) + 1);
+  $("chips").innerHTML = Object.keys(KINDS).filter(k => counts[k]).map(k =>
+    `<span class="chip ${hidden.has(k) ? "off" : ""}" data-k="${k}" style="background:#${KINDS[k]}" title="Click to hide / show">${k}<small>${counts[k]} page(s)</small></span>`).join("");
+  const q = $("search").value.trim().toLowerCase();
+  // date cells are inputs: a date typed here applies to that B/L only
+  const dateIn = (x, k) => `<input type="date" data-s="${x.src}" data-k="${k}" value="${toInput(x[k])}" title="Change the date for this B/L only">`;
+  const recCell = x => x.reefer ? `<td class="${x.recMissing ? "bad" : ""}">${dateIn(x, "rec")}</td>` : "<td></td>";
+  const demCell = x => x.rider || x.attach || x.kind === "SKIPPED" || x.kind === "ISO TANK+DG" ? "<td></td>"
+    : x.noDem ? `<td style="color:var(--muted)">${x.status} split — no DEM</td>`
+    : `<td class="${x.missing ? "bad" : "b"}">${dateIn(x, "dem")}</td>`;
+  $("tbody").innerHTML = rows.filter(x => !hidden.has(x.kind) && (!q || (x.bl + " " + x.note).toLowerCase().includes(q))).map(x =>
+    `<tr data-p="${x.page}"><td>${x.page}</td><td class="b">${escapeHtml(x.bl)}</td>` +
+    `<td class="kind" style="background:#${KINDS[x.kind]}">${x.kind}</td>${recCell(x)}${demCell(x)}` +
+    `<td class="l">${escapeHtml(x.note)}</td></tr>`).join("");
+  $("result").classList.remove("hidden");
+}
+
+async function preview(n) {
+  const doc = await pdfjsLib.getDocument({ data: report.out.slice() }).promise;
+  const page = await doc.getPage(n), vp = page.getViewport({ scale: 1.5 });
+  const cv = $("canvas"); cv.width = vp.width; cv.height = vp.height;
+  await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+  $("previewText").textContent = `Preview page ${n}`; $("previewText").dataset.p = n;
+  $("preview").classList.remove("hidden");
+  document.querySelectorAll("#tbody tr").forEach(tr => tr.classList.toggle("sel", +tr.dataset.p === n));
+}
+
+// keep = re-run after a date edit: stay on the same filters and preview page
+async function run(keep) {
+  if (!pdfFiles.length) return;
+  const page = keep === true ? +($("previewText").dataset.p || 1) : 1;
+  $("msg").textContent = fileWarn; $("run").disabled = true; $("run").textContent = "Processing...";
+  try {
+    const dates = { dem: fromInput($("demAll").value), rec: fromInput($("recAll").value) };
+    const doFill = async () => ({ ...(await fill(pdfFiles, xlsFile ? xlsFile.bytes : null, parseFloat($("size").value) || 15.5, dates, overrides)),
+                                  name: pdfFiles.map(f => f.name).join(", ") });
+    report = await doFill();
+    const auto = dateFixes(report.checks);
+    if (auto.size) {
+      const n = [...auto.values()].reduce((t, l) => t + l.length, 0);
+      await writeFixes(auto);
+      report = await doFill();
+      autoNote = `Form dates corrected to the D/O automatically: ${n} field(s)`;
+    }
+    if (keep !== true) { hidden.clear(); $("search").value = ""; }
+    render(); renderChecks();
+    const dupNote = report.dropped ? `${report.dropped} duplicate ATTACHED page(s) left out (one copy kept)` : "";
+    if (dupNote && !$("msg").textContent.includes(dupNote)) $("msg").textContent = [$("msg").textContent, dupNote].filter(Boolean).join(" · ");
+    preview(Math.min(page, report.rows.length));   // not awaited: the button is usable again at once
+  } catch (err) {
+    $("msg").textContent = "Failed: " + err.message;
+  }
+  $("run").textContent = "Process"; update();
+}
+
+// x2 for printing. A B/L = its page plus any ATTACHED RIDER pages after it.
+// CY: each B/L twice in a row (1,1,2,2). CFS: each master B/L's set of house B/Ls twice as separate sets (A,B,C,A,B,C).
+function printOrder(rows) {
+  const bls = [];
+  rows.forEach((r, i) => (r.rider || r.attach) && bls.length ? bls[bls.length - 1].idx.push(i) : bls.push({ cfs: r.cfs, master: r.master, idx: [i] }));
+  const order = [];
+  for (let k = 0; k < bls.length;) {
+    const { cfs, master, idx } = bls[k];
+    if (!cfs) { order.push(...idx, ...idx); k++; continue; }
+    const set = [];
+    while (k < bls.length && bls[k].cfs && bls[k].master === master) set.push(...bls[k++].idx);
+    order.push(...set, ...set);
+  }
+  return order;
+}
+
+async function buildX2() {
+  const src = await PDFLib.PDFDocument.load(report.out), prn = await PDFLib.PDFDocument.create();
+  for (const pg of await prn.copyPages(src, printOrder(report.rows))) prn.addPage(pg);
+  return prn.save();
+}
+
+async function printX2() {
+  $("print").disabled = true;
+  try {
+    const url = URL.createObjectURL(new Blob([await buildX2()], { type: "application/pdf" }));
+    let f = $("printFrame");
+    if (!f) { f = document.createElement("iframe"); f.id = "printFrame"; f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0"; document.body.appendChild(f); }
+    f.onload = () => {
+      try { f.contentWindow.focus(); f.contentWindow.print(); }
+      catch { window.open(url); }              // browser blocks printing from a frame: open the PDF to print from its viewer
+    };
+    f.src = url;
+  } catch (err) {
+    $("msg").textContent = "Could not build the print file: " + err.message;
+  }
+  $("print").disabled = false;
+}
+
+function save(bytes, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+// one click = both files: DO-DEM.pdf (x1) and DO-DEM-PRINT x 2.pdf (x2, print order)
+async function download() {
+  $("download").disabled = true;
+  try {
+    save(report.out, OUTPUT_NAME);
+    const x2 = await buildX2();
+    await new Promise(r => setTimeout(r, 600));   // a short gap so the browser takes the second download too
+    save(x2, PRINT_NAME);
+  } catch (err) {
+    $("msg").textContent = "Download failed: " + err.message;
+  }
+  $("download").disabled = false;
+}
+
+// ---------- ใบเปิดตู้ check table + edits ----------
+let autoNote = "";                    // dates corrected automatically in this job
+let fixedFiles = new Map();           // pdfFiles index -> corrected bytes (after "แก้ไข")
+function renderChecks() {
+  const all = report.checks || [];
+  $("checkCard").classList.toggle("hidden", !all.length);
+  if (!all.length) return;
+  // only the B/Ls that need fixing are listed; matching ones are just counted
+  const blocks = all.filter(b => b.fields.some(fd => fd.cells.some(c => c.ok === false)));
+  const okCount = all.length - blocks.length;
+  let bad = 0, k = 0;
+  $("checks").innerHTML = blocks.map(b => {
+    const pagesHdr = b.fields[0].cells.map(c => `<th>${c.page}</th>`).join("");
+    const body = b.fields.map(fd => {
+      const cells = fd.cells.map(c => {
+        if (c.val === null) return `<td style="color:var(--muted)">(not on this form)</td>`;
+        if (c.ok) return `<td>${escapeHtml(c.val)}${fd.key === "status" ? ` <small>${STATUS_TH[c.val] || ""}</small>` : ""}</td>`;
+        bad++;
+        const id = "fx" + (k++);
+        c.inputId = id;
+        const can = !!c.at;
+        return `<td class="wrong">${escapeHtml(c.val)}<br>` +
+          (can ? `<input class="fix" id="${id}" value="${escapeHtml(suggest(fd.key, fd.doVal, c.val))}" title="Value to write over the form">`
+               : `<small>Cannot be corrected here (several values in one field) — correct the original file</small>`) + `</td>`;
+      }).join("");
+      const ok = fd.cells.every(c => c.ok !== false);
+      return `<tr><td class="b">${fd.label}</td><td>${escapeHtml(fd.doVal || "-")}</td>${cells}<td class="${ok ? "ok" : "ng"}">${ok ? "Match" : "Mismatch"}</td></tr>`;
+    }).join("");
+    return `<div class="chk"><h3>B/L ${escapeHtml(b.bl)}</h3><div class="tbl"><table>` +
+      `<thead><tr><th>Field</th><th>D/O (source)</th>${pagesHdr}<th>Result</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  }).join("") + (bad ? `<p class="msg">⚠ ${blocks.length} B/L to correct (${bad} field(s)) — edit the red cells, then press “Correct the form with these values”` +
+                         (okCount ? ` · ${okCount} more B/L match on every field (not shown)` : "") + `</p>`
+                     : `<p class="allok">✓ Forms match the D/O on every field (${all.length} B/L)</p>`);
+  $("applyFix").classList.toggle("hidden", !bad);
+  // warning at the top too, and bring the table into view
+  $("msg").textContent = [fileWarn, autoNote, report && report.dropped ? `${report.dropped} duplicate ATTACHED page(s) left out (one copy kept)` : "", bad ? `⚠ Forms do not match the D/O in ${bad} field(s) — correct them in the form-check table below` : ""].filter(Boolean).join(" · ");
+  if (bad) $("checkCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("saveOver").classList.toggle("hidden", !fixedFiles.size || ![...fixedFiles.keys()].some(i => pdfFiles[i] && pdfFiles[i].handle));
+  $("saveFixed").classList.toggle("hidden", !fixedFiles.size);
+}
+
+// cover the wrong value with white and write the new one at the same spot, on the original form file
+// a form value drawn by the browser (so Thai is shaped), as a PNG sized in PDF points
+function fieldImage(text, size) {
+  const font = `${size * SCALE}px Tahoma, "Leelawadee UI", Sarabun, Arial, sans-serif`;
+  const m = document.createElement("canvas").getContext("2d"); m.font = font;
+  const w = m.measureText(text).width / SCALE + 2, asc = size * 1.05, descent = size * 0.35, h = asc + descent;
+  const cv = document.createElement("canvas"); cv.width = Math.ceil(w * SCALE); cv.height = Math.ceil(h * SCALE);
+  const c = cv.getContext("2d"); c.font = font; c.fillStyle = "#000"; c.textBaseline = "alphabetic";
+  c.fillText(text, 0, asc * SCALE);
+  return { png: cv.toDataURL("image/png"), w, h, descent };
+}
+
+// write corrections onto the form files: byFile = Map(file index -> [{...where, v: new value}])
+async function writeFixes(byFile) {
+  for (const [fi, fixes] of byFile) {
+    const doc = await PDFLib.PDFDocument.load(pdfFiles[fi].bytes);
+    const covers = readCovers(doc);
+    for (const f of fixes) {
+      const pg = doc.getPage(f.pi), right = pg.getWidth() - 14;   // keep the new value on the paper
+      const white = r => pg.drawRectangle({ x: r.x - 1, y: r.y - r.h * 0.3, width: r.w + 2, height: r.h * 1.25, color: PDFLib.rgb(1, 1, 1) });
+      // old continuation lines (a two-line CNEE): white them out and drop their old text when reading
+      for (const m of f.more || []) { white(m); covers.push({ pi: f.pi, x: m.x, y: m.y, w: m.w + 2, h: m.h, base: f.base }); }
+      let size = f.h * 0.92, x = f.x;
+      // a field that was on several lines wraps onto as many lines again (word by word) if it is too long for one
+      const gap = f.more && f.more.length ? f.y - f.more[0].y : f.h * 1.3;
+      let parts = [f.v];
+      if (f.more && f.more.length && fieldImage(f.v, size).w > right - x) {
+        parts = [];
+        for (const word of f.v.split(" ")) {
+          const tryLine = parts.length ? parts[parts.length - 1] + " " + word : word;
+          if (parts.length && fieldImage(tryLine, size).w <= right - x) parts[parts.length - 1] = tryLine; else parts.push(word);
+        }
+      }
+      let x0 = f.x, x1 = f.x + f.w, vw = 0;
+      for (let k = 0; k < parts.length; k++) {
+        let im = fieldImage(parts[k], size), lx = x;
+        if (lx + im.w > right) lx = Math.max(f.x - 45, right - im.w);              // longer value: move left into free space first
+        if (lx + im.w > right) { im = fieldImage(parts[k], size * (right - lx) / im.w); }   // then shrink to fit
+        const ly = f.y - k * gap;
+        white({ x: Math.min(lx, f.x), y: ly, w: Math.max(lx + im.w, f.x + f.w) - Math.min(lx, f.x), h: f.h });
+        pg.drawImage(await doc.embedPng(im.png), { x: lx, y: ly - im.descent, width: im.w, height: im.h });
+        if (k) covers.push({ pi: f.pi, x: lx, y: ly, w: im.w + 2, h: f.h, base: f.base });
+        x0 = Math.min(x0, lx); x1 = Math.max(x1, lx + im.w); vw = Math.max(vw, im.w);
+      }
+      // the whole new value is read back from the first line's spot
+      covers.push({ pi: f.pi, x: x0, y: f.y, w: x1 - x0 + 2, h: f.h, base: f.base, v: f.v, vw });
+    }
+    doc.setKeywords(["DOCOVERS:" + JSON.stringify(covers)]);
+    const bytes = await doc.save();
+    pdfFiles[fi] = { ...pdfFiles[fi], bytes };
+    fixedFiles.set(fi, bytes);
+  }
+}
+
+// dates on ใบเปิดตู้ / คำร้อง always follow the D/O: wrong ones are corrected without asking
+function dateFixes(checks) {
+  const byFile = new Map();
+  for (const b of checks || []) {
+    const fd = b.fields.find(x => x.key === "date");
+    if (!fd || !ymdOf(fd.doVal)) continue;
+    for (const c of fd.cells) {
+      if (c.ok !== false || !c.at) continue;
+      if (!byFile.has(c.at.fi)) byFile.set(c.at.fi, []);
+      byFile.get(c.at.fi).push({ ...c.at, v: suggest("date", fd.doVal, c.val) });
+    }
+  }
+  return byFile;
+}
+
+async function applyFix() {
+  const byFile = new Map();
+  for (const b of report.checks) for (const fd of b.fields) for (const c of fd.cells) {
+    if (!c.inputId || !c.at) continue;
+    const v = $(c.inputId).value.trim();
+    if (!v || v === c.val) continue;
+    if (!byFile.has(c.at.fi)) byFile.set(c.at.fi, []);
+    byFile.get(c.at.fi).push({ ...c.at, v });
+  }
+  if (!byFile.size) { $("fixMsg").textContent = "No value was changed"; return; }
+  await writeFixes(byFile);
+  $("fixMsg").textContent = "Corrected — checking again…";
+  await run(true);
+  $("fixMsg").textContent = "Corrected — save over the original file or download the corrected one";
+}
+
+async function saveOver() {
+  for (const [fi, bytes] of fixedFiles) {
+    const f = pdfFiles[fi];
+    if (!f.handle) continue;
+    try {
+      if ((await f.handle.queryPermission({ mode: "readwrite" })) !== "granted" &&
+          (await f.handle.requestPermission({ mode: "readwrite" })) !== "granted") throw new Error("no permission to write the file");
+      const w = await f.handle.createWritable(); await w.write(bytes); await w.close();
+      $("fixMsg").textContent = `Saved over "${f.name}"`;
+    } catch (err) { $("fixMsg").textContent = `Could not save over "${f.name}": ${err.message} — use the download button instead`; }
+  }
+}
+function saveFixed() {
+  for (const [fi, bytes] of fixedFiles) save(bytes, pdfFiles[fi].name.replace(/\.pdf$/i, "") + "-corrected.pdf");
+}
+$("applyFix").onclick = applyFix;
+$("saveOver").onclick = saveOver;
+$("saveFixed").onclick = saveFixed;
+
+// ---------- events ----------
+function update() { $("run").disabled = !pdfFiles.length; $("clear").disabled = !(pdfFiles.length || xlsFile || report); }
+function clearAll() {
+  pdfFiles = []; xlsFile = report = null; overrides = {}; fileWarn = ""; autoNote = ""; fixedFiles = new Map(); hidden.clear();
+  $("pdfText").innerHTML = $("xlsText").innerHTML = "Drop files here or <b>click to choose</b>";
+  $("filePdf").value = $("fileXls").value = $("demAll").value = $("recAll").value = "";
+  $("search").value = ""; $("msg").textContent = "";
+  $("result").classList.add("hidden"); $("preview").classList.add("hidden"); $("checkCard").classList.add("hidden");
+  update();
+}
+// what a file really is, from its first bytes (a file can be named .pdf and be something else)
+function kindOf(bytes) {
+  const head = String.fromCharCode(...bytes.slice(0, 1024));
+  if (head.includes("%PDF-")) return "pdf";
+  if (head.startsWith("PK\x03\x04") || head.startsWith("\xD0\xCF\x11\xE0")) return "excel";   // .xlsx (zip) / .xls (OLE)
+  if (/^\s*</.test(head)) return "html";
+  return "other";
+}
+
+// PDFs are added to the list (1 or more DO files, merged in the order added); a new CHECK DEM replaces the old one
+// handles: FileSystemFileHandle promises (Chrome/Edge) so a corrected ใบเปิดตู้ can be written back to the same file
+async function take(files, handles = []) {
+  let added = false;
+  const bad = [];
+  for (const f of files) {
+    const item = { name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) };
+    const fi = [...files].indexOf(f);
+    try { const h = await handles[fi]; if (h && h.kind === "file") item.handle = h; } catch { }
+    const kind = kindOf(item.bytes), kb = Math.max(1, Math.round(item.bytes.length / 1024));
+    if (kind === "pdf") { pdfFiles.push(item); added = true; }
+    else if (kind === "excel") { xlsFile = item; added = true; $("xlsText").innerHTML = `<b>${escapeHtml(f.name)}</b> (click to change)`; }
+    else bad.push(`"${f.name}" (${kb} KB) is not a real PDF or Excel file` +
+                  (kind === "html" ? " — it is a saved web page" : "") +
+                  " — open it to check, or download / print it to PDF again");
+  }
+  fileWarn = bad.join(" · "); $("msg").textContent = fileWarn;
+  if (pdfFiles.length) $("pdfText").innerHTML = pdfFiles.map(f => `<b>${escapeHtml(f.name)}</b>`).join(" + ") + " (click to add more)";
+  update();
+  if (added && pdfFiles.length) { overrides = {}; await run(); }   // DO in -> process right away
+}
+for (const [drop, input] of [["dropPdf", "filePdf"], ["dropXls", "fileXls"]]) {
+  const d = $(drop);
+  d.onclick = async () => {
+    if (drop === "dropPdf" && window.showOpenFilePicker) {        // keeps a handle -> "บันทึกทับไฟล์เดิม" works
+      try {
+        const hs = await showOpenFilePicker({ multiple: true, types: [{ description: "PDF", accept: { "application/pdf": [".pdf"] } }] });
+        return take(await Promise.all(hs.map(h => h.getFile())), hs);
+      } catch (err) { if (err.name === "AbortError") return; }
+    }
+    $(input).click();
+  };
+  $(input).onchange = async e => { await take(e.target.files); e.target.value = ""; };
+  d.ondragover = e => { e.preventDefault(); d.classList.add("over"); };
+  d.ondragleave = () => d.classList.remove("over");
+  d.ondrop = e => {
+    e.preventDefault(); d.classList.remove("over");
+    const hs = [...e.dataTransfer.items].filter(it => it.kind === "file").map(it => it.getAsFileSystemHandle ? it.getAsFileSystemHandle() : null);
+    take(e.dataTransfer.files, hs);
+  };
+}
+$("clear").onclick = () => { clearAll(); takeCheckDem(); };   // DO files go; the CHECK DEM from step ① stays
+// dates (DEM, ค่าไฟ, either or both, and per-B/L dates in the table) apply when ประมวลผล is pressed
+$("size").onchange = () => run(true);
+$("tbody").onchange = e => {
+  const el = e.target; if (!el.dataset.k) return;
+  const p = +el.dataset.s;
+  overrides[p] = { ...overrides[p], [el.dataset.k]: fromInput(el.value) };
+};
+$("run").onclick = () => run(!!report);
+$("search").oninput = render;
+$("download").onclick = download;
+$("print").onclick = printX2;
+$("chips").onclick = e => {
+  const k = e.target.closest(".chip")?.dataset.k; if (!k) return;
+  hidden.has(k) ? hidden.delete(k) : hidden.add(k); render();
+};
+$("tbody").onclick = e => { const tr = e.target.closest("tr"); if (tr && e.target.tagName !== "INPUT") preview(+tr.dataset.p); };
+// new job = empty form: the browser must not bring back dates from the last visit (reload / back button)
+// step 1 → step 2: the CHECK DEM page keeps its latest result in localStorage "doCheckDem" until its "Clear files".
+// Every time this page opens (or the result changes in another tab) that result is put in as the CHECK DEM file,
+// unless a CHECK DEM file was dropped here by hand. If DO files are already in, they are processed again.
+async function takeCheckDem() {
+  let got = null;
+  try { got = JSON.parse(localStorage.getItem("doCheckDem") || "null"); } catch { }
+  if (!got || !got.b64) return;
+  if (xlsFile && !xlsFile.fromDem) return;            // a file dropped here by hand wins
+  xlsFile = { name: got.name, bytes: Uint8Array.from(atob(got.b64), c => c.charCodeAt(0)), fromDem: true };
+  const when = new Date(got.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  $("xlsText").innerHTML = `<b>${escapeHtml(got.name)}</b> (from CHECK DEM, ${when}${got.bls ? ` · ${got.bls} B/L` : ""})`;
+  update();
+  if (pdfFiles.length) { await run(true); $("msg").textContent = ["New CHECK DEM from step 1 — processed again", $("msg").textContent].filter(Boolean).join(" · "); }
+  else $("msg").textContent = "CHECK DEM received from step 1 — now drop the DO / ATTACHED / form files";
+}
+addEventListener("pageshow", () => { clearAll(); $("size").value = "15.5"; takeCheckDem(); });
+// DO page already open in another tab: a new CHECK DEM comes in at once; "Clear files" on ① takes it away again
+addEventListener("storage", e => {
+  if (e.key !== "doCheckDem") return;
+  if (e.newValue) { if (xlsFile && xlsFile.fromDem) xlsFile = null; takeCheckDem(); }
+  else if (xlsFile && xlsFile.fromDem) {
+    xlsFile = null; $("xlsText").innerHTML = "Drop a file here or <b>click to choose</b>"; update();
+    $("msg").textContent = "CHECK DEM was cleared on step ①";
+  }
+});
+</script>
+</body>
+</html>

@@ -2,8 +2,8 @@
 
 **English** — Web: https://rattanao.github.io/DO/ (guide in Thai / English: https://rattanao.github.io/DO/guide.html)
 
-1. **① CHECK DEM** (`checkdem.html`): drop the Freedays file, enter the ATA, press **Calculate** — the result goes to step ② by itself.
-2. **② DO** (`index.html`): drop the DO / ATTACHED / container-opening form PDFs (any order) and press **Process**.
+1. **① CHECK DEM** (`index.html`, the first page): drop the Freedays file, enter the ATA, press **Calculate** — the result goes to step ② by itself.
+2. **② DO** (`do.html`, can also be used on its own): drop the DO / ATTACHED / container-opening form PDFs (any order) and press **Process**.
    Each B/L gets its DEM / reefer-power / SPECIAL CONTAINER notes (written in Thai on the document) and is merged as
    DO → ATTACHED → opening form → removal request. The forms are checked against the D/O (vessel, arrival date — corrected
    automatically, CNTR, CNEE, B/L NO., STATUS); wrong fields can be corrected on the page.
@@ -59,12 +59,12 @@ Desktop: put the files in `input/`, double-click `run-do.bat`, results in `outpu
 
 เว็บมี 2 ขั้นต่อกัน เลือกจากเมนูด้านบน: **① CHECK DEM → ② DO**
 
-- **① CHECK DEM** (https://rattanao.github.io/DO/checkdem.html): ลากไฟล์ Freedays ใส่ ATA กด **คำนวณ** แล้วกด **ใช้กับ DO ต่อ →**
+- **① CHECK DEM** (https://rattanao.github.io/DO/ หน้าแรก): ลากไฟล์ Freedays ใส่ ATA กด **คำนวณ** แล้วกด **ใช้กับ DO ต่อ →**
   **กดคำนวณเสร็จ CHECK DEM ถูกส่งไปหน้า ② DO ให้เองทันที** (หน้า DO ที่เปิดอยู่อีกแท็บจะรับและประมวลผลใหม่ให้เอง) หรือกดดาวน์โหลด CHECK DEM.xlsx ก็ได้
   — หน้านี้มาจาก [Check-dem](https://github.com/Rattanao/Check-dem) กฎคำนวณเหมือนกัน
-- **② DO** (https://rattanao.github.io/DO/): ทำตามขั้นตอนด้านล่าง
+- **② DO** (https://rattanao.github.io/DO/do.html ใช้เดี่ยว ๆ ได้ ไม่ต้องทำ ① ก่อน): ทำตามขั้นตอนด้านล่าง
 
-เปิดที่ **https://rattanao.github.io/DO/**
+เปิดที่ **https://rattanao.github.io/DO/do.html**
 
 1. ลากไฟล์ DO / ATTACHED / ใบเปิดตู้ (.pdf) มาวาง ใส่ได้หลายไฟล์ เว็บแยกชนิดและเรียงให้เอง ไฟล์ `CHECK DEM.xlsx` จะใส่หรือไม่ใส่ก็ได้
 2. ใส่ไฟล์ DO แล้วเว็บจะประมวลผลให้ทันที วันที่มาจาก
@@ -79,7 +79,7 @@ Desktop: put the files in `input/`, double-click `run-do.bat`, results in `outpu
 - ปรับขนาดตัวหนังสือได้ที่ช่อง "ขนาดตัวหนังสือ" (ค่าเริ่มต้น 15.5)
 - ใช้ฟอนต์ Angsana New ของเครื่อง (Windows) ถ้าเครื่องไม่มีจะใช้ Sarabun แทน
 - ข้อความที่เว็บเติมเป็นรูปภาพความละเอียดสูงฝังลงในหน้า PDF
-- ไฟล์ถูกประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้อยู่เท่านั้น ไม่มีการอัปโหลดข้อมูลไปที่ใด ตัวเว็บคือไฟล์ [`index.html`](index.html)
+- ไฟล์ถูกประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้อยู่เท่านั้น ไม่มีการอัปโหลดข้อมูลไปที่ใด ตัวเว็บคือไฟล์ [`do.html`](do.html)
 
 ## สิ่งที่ต้องมี (สำหรับโปรแกรม Python)
 
@@ -130,8 +130,9 @@ git clone https://github.com/Rattanao/DO "%USERPROFILE%\.claude\skills\do"
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `index.html` | หน้าเว็บ ② DO |
-| `checkdem.html` | หน้าเว็บ ① CHECK DEM (มาจาก Check-dem) ส่งผลต่อให้หน้า DO |
+| `do.html` | หน้าเว็บ ② DO |
+| `index.html` | หน้าเว็บ ① CHECK DEM หน้าแรก (มาจาก Check-dem) ส่งผลต่อให้หน้า DO |
+| `checkdem.html` | ลิงก์เดิม ส่งต่อไปหน้าแรก |
 | `guide.html` | หน้าคู่มือ + ปุ่มดาวน์โหลดโปรแกรม (https://rattanao.github.io/DO/guide.html) |
 | `run-do.bat` | ดับเบิลคลิกเพื่อรันโปรแกรมกับไฟล์ในโฟลเดอร์ `input` |
 | `scripts/fill_do.py` | โค้ดโปรแกรม Python |
