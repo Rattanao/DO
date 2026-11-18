@@ -140,7 +140,7 @@ for page in doc:
     row = rows.get(bl) or (rows.get(bl[:-1]) if bl[-1].isalpha() else None)
     rec0, dem = row if row else (None, None)
     dem_s = fmt(dem) if isinstance(dem, datetime.datetime) else None
-    dg = bool(re.search(r"\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCLASS\s*:?\s*\d|\bCL\s*\d", text))
+    dg = bool(re.search(r"\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCL(ASS)?\s*:?\s*(1\.[1-6]|2\.[1-3]|4\.[1-3]|5\.[12]|6\.[12]|[1-9])(?!\d|\.\d)", text))
     reefer = bool(re.search(r"\b(20|40|45)R[FH]|\bTEMP\b", text))
     tank = bool(re.search(r"ISO\s*TANK|\b\d\dTK\b", text))
     no_dem = cfs and is_split(bl)

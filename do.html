@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-13b</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-18a</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -182,7 +182,8 @@ const X = 46;                         // left edge of the notes, pt
 const SCALE = 6;                      // canvas px per pt (notes are embedded as images so Thai is shaped by the browser)
 // same rules as scripts/fill_do.py
 const RE_BL = /HASL\w+/;
-const RE_DG = /\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCLASS\s*:?\s*\d|\bCL\s*\d/;
+// DG class must be a real class / division (CL 2.0 in a store name is not DG)
+const RE_DG = /\bUN\s*(NO\.?)?\s*:?\s*\d{4}\b|\bCL(ASS)?\s*:?\s*(1\.[1-6]|2\.[1-3]|4\.[1-3]|5\.[12]|6\.[12]|[1-9])(?!\d|\.\d)/;
 const RE_REEFER = /\b(20|40|45)R[FH]|\bTEMP\b/;
 const RE_TANK = /ISO\s*TANK|\b\d\dTK\b/;
 const RE_STATUS = /\b(CY|CFS)\s*\/\s*(CY|CFS)\b/;
