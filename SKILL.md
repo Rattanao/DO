@@ -74,8 +74,8 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     `** ไม่มีข้อความติดต่อ… **`. A box that lies over goods text is reported (`** ทับข้อความ … **`).
     The DEM line is still filled on LCL D/Os.
 15. **n/N PARTS** (user, 2026-11-19, example DO_EXP.pdf): CY D/Os (status `.../CY`) that share a container no.
-    (D/O page + its rider pages) are parts of one container. Each gets `n/N PARTS` in black Helvetica 12.5pt,
-    right edge x 405, just above the status line, numbered in B/L order (master, A, B, ...). Several shared
+    (D/O page + its rider pages) are parts of one container. Each gets `n/N PARTS` in black Helvetica 11pt,
+    right edge x 494 (gross-weight column, left of the measurement line), just above the status line, numbered in B/L order (master, A, B, ...). Several shared
     containers give separate groups (e.g. 1/5 ... 5/5 and 1/8 ... 8/8). LCL / CFS D/Os are never numbered.
 
 Format: Angsana New Bold 16pt (user, 2026-11-19; about the size of the "HEUNG A LINE (THAILAND) CO.,LTD."

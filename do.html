@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19e</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19f</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -517,7 +517,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     if (boxBody) boxNote += await contactBox(doc, page, pg.lines, boxBody, boxTop, boxLimit);
     if (partsOf.has(n - 1)) {
       const [k, m] = partsOf.get(n - 1), s = `${k}/${m} PARTS`, st = pg.lines.find(l => RE_STATUS.test(l.str));
-      page.drawText(s, { x: 405 - helv.widthOfTextAtSize(s, 12.5), y: st ? st.y + 18 : H - 581, size: 12.5, font: helv, color: PDFLib.rgb(0, 0, 0) });
+      page.drawText(s, { x: 494 - helv.widthOfTextAtSize(s, 11), y: st ? st.y + 16 : H - 583, size: 11, font: helv, color: PDFLib.rgb(0, 0, 0) });
       boxNote += ` · ${s}`;
     }
     const missing = kind !== "ISO TANK+DG" && !noDem && !dem;

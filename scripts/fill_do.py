@@ -215,9 +215,9 @@ def parts_mark(page, lines, idx):
     k, n = PARTS[idx]
     s = f"{k}/{n} PARTS"
     st = next((l for l in lines if RE_STATUS.search(l["s"])), None)
-    base = (st["y0"] - 8) if st else 581
-    w = pymupdf.get_text_length(s, fontname="helv", fontsize=12.5)
-    page.insert_text((405 - w, base), s, fontname="helv", fontsize=12.5, color=(0, 0, 0))
+    base = (st["y0"] - 6) if st else 583
+    w = pymupdf.get_text_length(s, fontname="helv", fontsize=11)
+    page.insert_text((494 - w, base), s, fontname="helv", fontsize=11, color=(0, 0, 0))   # gross-weight column, left of the measurement line
     return f" | {s}"
 
 # ---------- fill the D/O pages ----------
