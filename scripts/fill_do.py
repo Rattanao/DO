@@ -74,7 +74,7 @@ CONTACTS = {
 }
 BLUE = (0.04, 0.16, 0.66)
 # bigger and bold so it prints clearly (user, 2026-11-19): Tahoma Bold 10pt, box 256 pt wide (x 170-426)
-BOX_X0, BOX_X1, BOX_LH = 170, 426, 13.6
+BOX_X0, BOX_X1, BOX_LH = 45, 300, 13.6   # under the DEM note, left of the signature line
 arch.add((open("C:/Windows/Fonts/tahomabd.ttf", "rb").read(), "tahomabd.ttf"))
 CSS_BOX = ("@font-face{font-family:tah;src:url(tahomabd.ttf);font-weight:bold;} "
            "p{font-family:tah;font-weight:bold;font-size:10pt;margin:0;line-height:1.36;text-align:center;color:#0a2aa8;} u{text-decoration:underline;}")
@@ -94,24 +94,35 @@ def port_of_discharge(lines):
             else "BKK" if re.search(r"BANGKOK", val) else "")
     return port, val
 
-def contact_box(page, lines, text):
-    """Returns a report note, or '' when the page is not LCL."""
+def contact_pick(lines, text):
+    """(body, label) for an LCL D/O, (None, warning) when there is no text for it, (None, '') when not LCL."""
     m = RE_LCL.search(text.replace("\n", " "))
-    if not m: return ""
+    if not m: return None, ""
     who = m.group(1)
     port, val = port_of_discharge(lines)
     body = CONTACTS.get((port, who))
     if not body:
-        return f"  ** ไม่มีข้อความติดต่อสำหรับ LCL({who}) ท่า {val or '?'} **"
-    st = next((l for l in lines if RE_LCL.search(l["s"])), None)
-    bottom = (st["y0"] - 5) if st else 595
-    h = 10 + BOX_LH * len(body)
-    r = pymupdf.Rect(BOX_X0, bottom - h, BOX_X1, bottom)
+        return None, f"  ** ไม่มีข้อความติดต่อสำหรับ LCL({who}) ท่า {val or '?'} **"
+    return body, f" | ติดต่อ LCL({who}) {port}"
+
+def free_area(lines):
+    """Bottom-left space of the D/O for the notes: from under the disclaimer to above the office address."""
+    top = max((l["y1"] for l in lines if re.search(r"Carrier\s*shall|responsible\s*for\s*any", l["s"])), default=676)
+    bottom = min((l["y0"] for l in lines if re.search(r"U-?Chuliang|Rama\s*4", l["s"]) and l["y0"] > top), default=795)
+    return top + 9, bottom - 3
+
+def contact_box(page, lines, body, y0, y1):
+    """The box under the DEM note (user, 2026-11-19), shrunk to fit between y0 and y1."""
+    n = sum(.5 if not t else 1 for t in body)
+    lh = max(9.5, min(BOX_LH, (y1 - y0 - 7) / n))
+    fs = round(min(10, lh / 1.3), 2)
+    r = pymupdf.Rect(BOX_X0, y0, BOX_X1, y0 + 7 + lh * n)
     page.draw_rect(r, color=BLUE, width=1.5)
-    page.insert_htmlbox(r + (3, 4, -3, -2), "".join(f"<p>{t or '&nbsp;'}</p>" for t in body), css=CSS_BOX, archive=arch, scale_low=0.7)
-    hit = [l["s"] for l in lines if r.x0 - 5 < l["x0"] < r.x1 and l["y1"] > r.y0 + 1 and l["y0"] < r.y1 - 1
-           and not RE_LCL.search(l["s"])]
-    return f" | ติดต่อ LCL({who}) {port}" + (f"  ** ทับข้อความ: {hit[0][:30]} **" if hit else "")
+    css = CSS_BOX.replace("font-size:10pt", f"font-size:{fs}pt").replace("line-height:1.36", f"line-height:{lh / fs:.3f}")
+    html = "".join(f"<p>{t}</p>" if t else f'<p style="line-height:{lh / 2 / fs:.3f}">&nbsp;</p>' for t in body)
+    page.insert_htmlbox(r + (3, 3, -3, 0), html, css=css, archive=arch, scale_low=0.6)
+    hit = [l["s"] for l in lines if r.x0 - 5 < l["x0"] < r.x1 and l["y1"] > r.y0 + 1 and l["y0"] < r.y1 - 1]
+    return f"  ** ทับข้อความ: {hit[0][:30]} **" if hit else ""
 
 MARK = "DO-DEM-FILLED"
 # pages we already filled: the marker, or (older outputs) the old stamp / Thai note text
@@ -223,10 +234,17 @@ for page in doc:
         if not dem_s: kind += "  ** ไม่มีวันที่ DEM ใน CHECK DEM **"
     elif not dem_s and not (tank and dg):
         kind += "  ** ไม่มีวันที่ DEM ใน CHECK DEM **"
+    body, box = contact_pick(p["lines"], text)
+    if body:   # LCL contact box goes under the DEM note: move the notes up to just under the disclaimer
+        top, limit = free_area(p["lines"])
+        dy = top - parts[0][0]
+        parts = [(y + dy, h) for y, h in parts]
+        filled = [(y, h) for y, h in parts if h]
+        y0 = (filled[-1][0] + 16.8 * filled[-1][1].count("<p>") + 3) if filled else top
+        box += contact_box(page, p["lines"], body, y0, limit)
     for y, html in parts:
         if html:
             page.insert_htmlbox(pymupdf.Rect(45, y, 300, y + 45), html, css=CSS, archive=arch, scale_low=1)
-    box = contact_box(page, p["lines"], text)
     report.append([page.number, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h) + box])
 
 # ---------- merge order: per D/O B/L -> D/O (+ rider) -> ATTACHED -> ใบเปิดตู้ / คำร้อง ----------

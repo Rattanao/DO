@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19c</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19d</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -265,34 +265,49 @@ function portOfDischarge(lines) {
   return { port, val };
 }
 // bigger and bold so it prints clearly (user, 2026-11-19): Tahoma Bold 10pt, box 256 pt wide (x 170-426)
-const BOX_X = 170, BOX_W = 256, BOX_FS = 10, BOX_LH = 13.6;
-function contactImage(body) {
-  const h = 10 + BOX_LH * body.length, S = SCALE;
+// under the DEM note, left of the signature line (user, 2026-11-19); lines shrink to fit the free space
+const BOX_X = 45, BOX_W = 255, BOX_LH = 13.6;
+function contactPick(lines, text) {
+  const m = text.replace(/\n/g, " ").match(RE_LCL);
+  if (!m) return { body: null, note: "" };
+  const who = m[1], { port, val } = portOfDischarge(lines), body = CONTACTS[port + "|" + who];
+  if (!body) return { body: null, note: ` · ⚠ no contact text for LCL(${who}) at ${val || "?"}` };
+  return { body, note: ` · contact LCL(${who}) ${port}` };
+}
+// free space for the notes, top-down PDF units: under the disclaimer, above the office address
+function freeArea(lines, H) {
+  const dis = lines.filter(l => /Carrier\s*shall|responsible\s*for\s*any/.test(l.str)).map(l => H - l.y + .25 * l.h);
+  const top = dis.length ? Math.max(...dis) : 676;
+  const adr = lines.filter(l => /U-?Chuliang|Rama\s*4/.test(l.str)).map(l => H - l.y - .8 * l.h).filter(y => y > top);
+  return { top: top + 9, bottom: (adr.length ? Math.min(...adr) : 795) - 3 };
+}
+function contactImage(body, lh) {
+  const n = body.reduce((t, x) => t + (x ? 1 : .5), 0), fs = Math.min(10, lh / 1.3);
+  const h = 7 + lh * n, S = SCALE;
   const cv = document.createElement("canvas"); cv.width = Math.ceil(BOX_W * S); cv.height = Math.ceil(h * S);
   const c = cv.getContext("2d");
   c.strokeStyle = c.fillStyle = "#0a2aa8"; c.lineWidth = 1.5 * S;
   c.strokeRect(.75 * S, .75 * S, (BOX_W - 1.5) * S, (h - 1.5) * S);
-  c.font = `bold ${BOX_FS * S}px Tahoma, Sarabun, sans-serif`; c.textAlign = "center"; c.textBaseline = "alphabetic";
-  body.forEach((t, i) => {
-    const u = t.startsWith("_"), s = u ? t.slice(1) : t, y = (5 + BOX_LH * i + BOX_FS * 1.05) * S;
+  c.font = `bold ${fs * S}px Tahoma, Sarabun, sans-serif`; c.textAlign = "center"; c.textBaseline = "alphabetic";
+  let top = 3.5;
+  body.forEach(t => {
+    if (!t) { top += lh / 2; return; }
+    const u = t.startsWith("_"), s = u ? t.slice(1) : t, y = (top + (lh - fs) / 2 + fs * .95) * S;
     let tw = c.measureText(s).width;
     const k = tw > (BOX_W - 6) * S ? (BOX_W - 6) * S / tw : 1;   // shrink a line that is too long
     c.save(); c.translate(BOX_W / 2 * S, y); c.scale(k, 1); c.fillText(s, 0, 0); c.restore();
-    if (u) { tw *= k; c.fillRect(BOX_W / 2 * S - tw / 2, y + .15 * BOX_FS * S, tw, .07 * BOX_FS * S); }
+    if (u) { tw *= k; c.fillRect(BOX_W / 2 * S - tw / 2, y + .15 * fs * S, tw, .07 * fs * S); }
+    top += lh;
   });
   return { png: cv.toDataURL("image/png"), w: BOX_W, h };
 }
-async function contactBox(doc, page, lines, text) {
-  const m = text.replace(/\n/g, " ").match(RE_LCL);
-  if (!m) return "";
-  const who = m[1], { port, val } = portOfDischarge(lines), body = CONTACTS[port + "|" + who];
-  if (!body) return ` · ⚠ no contact text for LCL(${who}) at ${val || "?"}`;
-  const st = lines.find(l => RE_LCL.test(l.str));
-  const bottom = st ? st.y + st.h * .9 + 5 : 247;          // PDF units, from the page bottom
-  const im = contactImage(body), ref = await doc.embedPng(im.png);
-  page.drawImage(ref, { x: BOX_X, y: bottom, width: im.w, height: im.h });
-  const over = lines.filter(l => l !== st && l.x0 > BOX_X - 5 && l.x0 < BOX_X + im.w && l.y < bottom + im.h - 1 && l.y + l.h > bottom + 1 && !RE_LCL.test(l.str));
-  return ` · contact LCL(${who}) ${port}` + (over.length ? ` ⚠ covers text: ${over[0].str.slice(0, 30)}` : "");
+async function contactBox(doc, page, lines, body, y0, y1) {    // y0 / y1 top-down
+  const H = page.getHeight(), n = body.reduce((t, x) => t + (x ? 1 : .5), 0);
+  const lh = Math.max(9.5, Math.min(BOX_LH, (y1 - y0 - 7) / n));
+  const im = contactImage(body, lh), ref = await doc.embedPng(im.png);
+  page.drawImage(ref, { x: BOX_X, y: H - y0 - im.h, width: im.w, height: im.h });
+  const over = lines.filter(l => l.x0 > BOX_X - 5 && l.x0 < BOX_X + im.w && H - l.y > y0 + 2 && H - l.y - l.h < y0 + im.h - 1);
+  return over.length ? ` ⚠ covers text: ${over[0].str.slice(0, 30)}` : "";
 }
 
 function noteImage(lines, size, fam) {
@@ -463,6 +478,13 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     else if (dg) { kind = "DG"; parts = [[690, SPECIAL], [760, demLine]]; }
     else { kind = "GENERAL"; parts = [[728, demLine]]; }
     const page = doc.getPage(n - 1), H = page.getHeight();
+    let { body: boxBody, note: boxNote } = contactPick(pg.lines, text), boxTop = 0, boxLimit = 0;
+    if (boxBody) {   // LCL contact box goes under the DEM note: move the notes up to just under the disclaimer
+      const fa = freeArea(pg.lines, H), dy = fa.top - parts[0][0];
+      parts = parts.map(([y, l]) => [y + dy, l]);
+      const filled = parts.filter(p => p[1]), last = filled[filled.length - 1];
+      boxTop = last ? last[0] + last[1].length * 1.05 * size + .3 * size : fa.top; boxLimit = fa.bottom;
+    }
     for (const [y, lines] of parts) {
       if (!lines) continue;
       const key = JSON.stringify(lines);
@@ -470,7 +492,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
       const im = cache.get(key);
       page.drawImage(im.ref, { x: X, y: H - y - im.h, width: im.w, height: im.h });
     }
-    const boxNote = await contactBox(doc, page, pg.lines, text);
+    if (boxBody) boxNote += await contactBox(doc, page, pg.lines, boxBody, boxTop, boxLimit);
     const missing = kind !== "ISO TANK+DG" && !noDem && !dem;
     out.push({ page: n, src: n, bl, master, kind, rec, dem, missing, cfs, noDem, status, inSheet: key0 !== null, reefer,
                recMissing: reefer && !rec,
