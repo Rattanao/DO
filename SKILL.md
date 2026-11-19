@@ -65,8 +65,15 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     units); both the web page and this script read it, so a corrected file re-checks as matching.
     Buttons: "บันทึกทับไฟล์เดิม" (Chrome/Edge, writes back to the chosen file) and "ดาวน์โหลดใบเปิดที่แก้แล้ว"
     (`<name>-แก้ไข.pdf`).
+14. **LCL contact box** (user's stamps from สถานทีติดต่อ.pdf, example DO-exp.pdf, 2026-11-19): a D/O whose status
+    is `LCL(AGENT)` (แรงงานเรือ) or `LCL(CNEE)` (แรงงานลูกค้า) gets a blue box (Tahoma, centred, 214 pt wide) in the
+    goods area just above the status line, chosen by the Port of discharge value: UTCT/UCTC/UNITHAI -> UCTC,
+    LAEM CHABANG -> LCB, BANGKOK -> BKK. Texts are in `CONTACTS` (fill_do.py and do.html, keep both the same):
+    BKK AGENT, BKK CNEE, LCB AGENT, UCTC AGENT. LCB / UCTC with LCL(CNEE) have no text yet -> reported
+    `** ไม่มีข้อความติดต่อ… **`. A box that lies over goods text is reported (`** ทับข้อความ … **`).
+    The DEM line is still filled on LCL D/Os.
 
-Format: Angsana New Bold 15.5pt (a little smaller than the "HEUNG A LINE (THAILAND) CO.,LTD."
+Format: Angsana New Bold 16pt (user, 2026-11-19; about the size of the "HEUNG A LINE (THAILAND) CO.,LTD."
 line on the right), bottom-left of the page, dates as `09-OCT-2026`, **underline on the date
 only** (the DG line is not underlined). Pages that already carry a typed annotation are skipped.
 

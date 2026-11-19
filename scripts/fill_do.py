@@ -50,8 +50,58 @@ else:
 
 arch = pymupdf.Archive(); arch.add((bold_font(), "angsab.ttf"))
 CSS = ("@font-face{font-family:ang;src:url(angsab.ttf);} "
-       "p{font-family:ang;font-size:15.5pt;margin:0;line-height:1.05;} u{text-decoration:underline;}")
+       "p{font-family:ang;font-size:16pt;margin:0;line-height:1.05;} u{text-decoration:underline;}")
 SPECIAL = "<p>SPECIAL CONTAINER</p><p>.......DG..........OP..........FR</p>"
+
+
+# ---------- LCL contact box (user's stamps, input sample สถานทีติดต่อ.pdf, 2026-11-19) ----------
+# Chosen by the STATUS (LCL(AGENT) = แรงงานเรือ, LCL(CNEE) = แรงงานลูกค้า) and the Port of discharge
+# (UTCT / LAEM CHABANG / BANGKOK). Drawn as a blue box in the goods area, just above the status line.
+CONTACTS = {
+    ("BKK", "AGENT"): ["LCL ขนส่งหน้าตู้แรงงานเรือ (BKK)", "ติดต่อเจ้าหน้าที่ประจำท่าเรือ",
+                       "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ",
+                       "ติดต่อคุณตั้ม 090-4591899, คุณกระถิน 084-3179294", "คุณเอก 088-9164711",
+                       "", "หมายเหตุ : แจ้งก่อน 12.00 น."],
+    ("BKK", "CNEE"): ["LCL ขนส่งหน้าตู้แรงงานลูกค้า (BKK)", "หลังจากเปิดตู้นำสินค้าออกเรียบร้อยแล้ว",
+                      "กรุณานำสำเนาใบ WHARF ติดต่อ", "คุณเอก 088-9164711", "เพื่อหยุดค่าภาระ DEMMURAGE"],
+    ("LCB", "AGENT"): ["LCL", "<u>ขนส่งหน้าตู้แรงงานเรือ (LCB)</u>", "ติดต่อเทอร์มินอล",
+                       "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
+    ("UCTC", "AGENT"): ["LCL ขนส่งหน้าตู้แรงงานเรือ (UCTC)", "ติดต่อเจ้าหน้าที่ประจำท่าเรือ",
+                        "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
+}
+BLUE = (0.12, 0.25, 0.78)
+arch.add((open("C:/Windows/Fonts/tahoma.ttf", "rb").read(), "tahoma.ttf"))
+CSS_BOX = ("@font-face{font-family:tah;src:url(tahoma.ttf);} "
+           "p{font-family:tah;font-size:8.6pt;margin:0;line-height:1.3;text-align:center;color:#1f40c7;} u{text-decoration:underline;}")
+RE_LCL = re.compile(r"LCL\s*\(\s*(AGENT|CNEE)\s*\)")
+
+def port_of_discharge(lines):
+    lab = next((l for l in lines if re.search(r"Port\s*of\s*discharge", l["s"], re.I)), None)
+    if not lab: return "", ""
+    val = next((l["s"] for l in sorted(lines, key=lambda l: l["y0"])
+                if l["y0"] > lab["y0"] + 2 and l["y0"] < lab["y1"] + 22 and l["x0"] < lab["x0"] + 120), "")
+    port = ("UCTC" if re.search(r"UTCT|UCTC|UNITHAI", val) else "LCB" if re.search(r"LAEM", val)
+            else "BKK" if re.search(r"BANGKOK", val) else "")
+    return port, val
+
+def contact_box(page, lines, text):
+    """Returns a report note, or '' when the page is not LCL."""
+    m = RE_LCL.search(text.replace("\n", " "))
+    if not m: return ""
+    who = m.group(1)
+    port, val = port_of_discharge(lines)
+    body = CONTACTS.get((port, who))
+    if not body:
+        return f"  ** ไม่มีข้อความติดต่อสำหรับ LCL({who}) ท่า {val or '?'} **"
+    st = next((l for l in lines if RE_LCL.search(l["s"])), None)
+    bottom = (st["y0"] - 5) if st else 595
+    h = 9 + 11.2 * len(body)
+    r = pymupdf.Rect(213, bottom - h, 427, bottom)
+    page.draw_rect(r, color=BLUE, width=1.1)
+    page.insert_htmlbox(r + (3, 4, -3, -2), "".join(f"<p>{t or '&nbsp;'}</p>" for t in body), css=CSS_BOX, archive=arch, scale_low=0.6)
+    hit = [l["s"] for l in lines if r.x0 - 5 < l["x0"] < r.x1 and l["y1"] > r.y0 + 1 and l["y0"] < r.y1 - 1
+           and not RE_LCL.search(l["s"])]
+    return f" | ติดต่อ LCL({who}) {port}" + (f"  ** ทับข้อความ: {hit[0][:30]} **" if hit else "")
 
 MARK = "DO-DEM-FILLED"
 # pages we already filled: the marker, or (older outputs) the old stamp / Thai note text
@@ -166,7 +216,8 @@ for page in doc:
     for y, html in parts:
         if html:
             page.insert_htmlbox(pymupdf.Rect(45, y, 300, y + 45), html, css=CSS, archive=arch, scale_low=1)
-    report.append([page.number, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h)])
+    box = contact_box(page, p["lines"], text)
+    report.append([page.number, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h) + box])
 
 # ---------- merge order: per D/O B/L -> D/O (+ rider) -> ATTACHED -> ใบเปิดตู้ / คำร้อง ----------
 order, used, dropped = [], set(), []

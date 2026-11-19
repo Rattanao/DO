@@ -120,7 +120,7 @@
       </div>
       <div>
         <label class="t" for="size">Font size</label>
-        <input type="number" id="size" value="15.5" min="8" max="24" step="0.5">
+        <input type="number" id="size" value="16" min="8" max="24" step="0.5">
       </div>
       <div class="btns">
         <button id="run" disabled>Process</button>
@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-18a</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19a</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -237,6 +237,56 @@ function fontFamily() {               // Angsana New when installed (Windows), o
   return a !== c.measureText(t).width ? { css: '"Angsana New"', k: 1 } : { css: "Sarabun", k: .68 };
 }
 // lines = [[ [text, underline], ... ], ...]  ->  {png, w, h} in pt; first baseline at .9 * size below the top
+// ---------- LCL contact box (user's stamps, sample สถานทีติดต่อ.pdf, 2026-11-19) ----------
+// Chosen by STATUS (LCL(AGENT) = แรงงานเรือ, LCL(CNEE) = แรงงานลูกค้า) and the Port of discharge
+// (UTCT / LAEM CHABANG / BANGKOK); a blue box in the goods area just above the status line.
+const CONTACTS = {
+  "BKK|AGENT": ["LCL ขนส่งหน้าตู้แรงงานเรือ (BKK)", "ติดต่อเจ้าหน้าที่ประจำท่าเรือ", "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ",
+                "ติดต่อคุณตั้ม 090-4591899, คุณกระถิน 084-3179294", "คุณเอก 088-9164711", "", "หมายเหตุ : แจ้งก่อน 12.00 น."],
+  "BKK|CNEE": ["LCL ขนส่งหน้าตู้แรงงานลูกค้า (BKK)", "หลังจากเปิดตู้นำสินค้าออกเรียบร้อยแล้ว", "กรุณานำสำเนาใบ WHARF ติดต่อ",
+               "คุณเอก 088-9164711", "เพื่อหยุดค่าภาระ DEMMURAGE"],
+  "LCB|AGENT": ["LCL", "_ขนส่งหน้าตู้แรงงานเรือ (LCB)", "ติดต่อเทอร์มินอล", "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
+  "UCTC|AGENT": ["LCL ขนส่งหน้าตู้แรงงานเรือ (UCTC)", "ติดต่อเจ้าหน้าที่ประจำท่าเรือ", "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
+};
+const RE_LCL = /LCL\s*\(\s*(AGENT|CNEE)\s*\)/;
+function portOfDischarge(lines) {
+  const lab = lines.find(l => /Port\s*of\s*discharge/i.test(l.str));
+  if (!lab) return { port: "", val: "" };
+  const v = lines.filter(l => l.y < lab.y - 1 && l.y > lab.y - 24 && l.x0 < lab.x0 + 120).sort((a, b) => b.y - a.y)[0];
+  const val = v ? v.str : "";
+  const port = /UTCT|UCTC|UNITHAI/.test(val) ? "UCTC" : /LAEM/.test(val) ? "LCB" : /BANGKOK/.test(val) ? "BKK" : "";
+  return { port, val };
+}
+const BOX_W = 214, BOX_FS = 8.6, BOX_LH = 11.2;
+function contactImage(body) {
+  const h = 9 + BOX_LH * body.length, S = SCALE;
+  const cv = document.createElement("canvas"); cv.width = Math.ceil(BOX_W * S); cv.height = Math.ceil(h * S);
+  const c = cv.getContext("2d");
+  c.strokeStyle = c.fillStyle = "#1f40c7"; c.lineWidth = 1.1 * S;
+  c.strokeRect(.55 * S, .55 * S, (BOX_W - 1.1) * S, (h - 1.1) * S);
+  c.font = `${BOX_FS * S}px Tahoma, Sarabun, sans-serif`; c.textAlign = "center"; c.textBaseline = "alphabetic";
+  body.forEach((t, i) => {
+    const u = t.startsWith("_"), s = u ? t.slice(1) : t, y = (4 + BOX_LH * i + BOX_FS * 1.05) * S;
+    let tw = c.measureText(s).width;
+    const k = tw > (BOX_W - 6) * S ? (BOX_W - 6) * S / tw : 1;   // shrink a line that is too long
+    c.save(); c.translate(BOX_W / 2 * S, y); c.scale(k, 1); c.fillText(s, 0, 0); c.restore();
+    if (u) { tw *= k; c.fillRect(BOX_W / 2 * S - tw / 2, y + .15 * BOX_FS * S, tw, .07 * BOX_FS * S); }
+  });
+  return { png: cv.toDataURL("image/png"), w: BOX_W, h };
+}
+async function contactBox(doc, page, lines, text) {
+  const m = text.replace(/\n/g, " ").match(RE_LCL);
+  if (!m) return "";
+  const who = m[1], { port, val } = portOfDischarge(lines), body = CONTACTS[port + "|" + who];
+  if (!body) return ` · ⚠ no contact text for LCL(${who}) at ${val || "?"}`;
+  const st = lines.find(l => RE_LCL.test(l.str));
+  const bottom = st ? st.y + st.h * .9 + 5 : 247;          // PDF units, from the page bottom
+  const im = contactImage(body), ref = await doc.embedPng(im.png);
+  page.drawImage(ref, { x: 213, y: bottom, width: im.w, height: im.h });
+  const over = lines.filter(l => l !== st && l.x0 > 208 && l.x0 < 213 + im.w && l.y < bottom + im.h - 1 && l.y + l.h > bottom + 1 && !RE_LCL.test(l.str));
+  return ` · contact LCL(${who}) ${port}` + (over.length ? ` ⚠ covers text: ${over[0].str.slice(0, 30)}` : "");
+}
+
 function noteImage(lines, size, fam) {
   const lineH = 1.05 * size, font = `bold ${size * fam.k * SCALE}px ${fam.css}, Sarabun, Tahoma`;
   const m = document.createElement("canvas").getContext("2d"); m.font = font;
@@ -412,11 +462,12 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
       const im = cache.get(key);
       page.drawImage(im.ref, { x: X, y: H - y - im.h, width: im.w, height: im.h });
     }
+    const boxNote = await contactBox(doc, page, pg.lines, text);
     const missing = kind !== "ISO TANK+DG" && !noDem && !dem;
     out.push({ page: n, src: n, bl, master, kind, rec, dem, missing, cfs, noDem, status, inSheet: key0 !== null, reefer,
                recMissing: reefer && !rec,
                note: (cfs ? (noDem ? "CFS split · " : "single CFS, filled like CY · ") : "") +
-                     parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") });
+                     parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") + boxNote });
   }
 
   // merge order: per D/O B/L -> D/O (+ rider) -> ATTACHED -> ใบเปิดตู้ / คำร้อง; pages of other B/Ls stay at the end
@@ -594,7 +645,7 @@ async function run(keep) {
   $("msg").textContent = fileWarn; $("run").disabled = true; $("run").textContent = "Processing...";
   try {
     const dates = { dem: fromInput($("demAll").value), rec: fromInput($("recAll").value) };
-    const doFill = async () => ({ ...(await fill(pdfFiles, xlsFile ? xlsFile.bytes : null, parseFloat($("size").value) || 15.5, dates, overrides)),
+    const doFill = async () => ({ ...(await fill(pdfFiles, xlsFile ? xlsFile.bytes : null, parseFloat($("size").value) || 16, dates, overrides)),
                                   name: pdfFiles.map(f => f.name).join(", ") });
     report = await doFill();
     const auto = dateFixes(report.checks);
@@ -914,7 +965,7 @@ async function takeCheckDem() {
   if (pdfFiles.length) { await run(true); $("msg").textContent = ["New CHECK DEM from step 1 — processed again", $("msg").textContent].filter(Boolean).join(" · "); }
   else $("msg").textContent = "CHECK DEM received from step 1 — now drop the DO / ATTACHED / form files";
 }
-addEventListener("pageshow", () => { clearAll(); $("size").value = "15.5"; takeCheckDem(); });
+addEventListener("pageshow", () => { clearAll(); $("size").value = "16"; takeCheckDem(); });
 // DO page already open in another tab: a new CHECK DEM comes in at once; "Clear files" on ① takes it away again
 addEventListener("storage", e => {
   if (e.key !== "doCheckDem") return;
