@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19d</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19e</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -436,6 +436,28 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
   // CFS rule (trial 2026-11-02): only a split set (house B/L ...A/...B, or a master with houses in the job) goes without DEM
   const isSplit = bl => /[A-Z]$/.test(bl) || [...doBls].some(b => b !== bl && b.slice(0, -1) === bl && /[A-Z]$/.test(b));
 
+  // "n/N PARTS" (user, 2026-11-19): CY D/Os (status .../CY) sharing a container no. are numbered in B/L order
+  const partsOf = new Map();
+  {
+    const bls = new Map();
+    pages.forEach((q, i) => {
+      const st = q.text.match(RE_STATUS);
+      if (q.type !== "do" || !st || st[2] !== "CY" || bls.has(q.bl)) return;
+      const c = new Set(q.text.match(RE_CNTR) || []);
+      for (let j = i + 1; j < pages.length && pages[j].type === "rider"; j++) (pages[j].text.match(RE_CNTR) || []).forEach(x => c.add(x));
+      bls.set(q.bl, { i, c });
+    });
+    let groups = [];
+    for (const [bl, { c }] of bls) {
+      const hit = groups.filter(g => [...c].some(x => g.c.has(x)));
+      const g = { c: new Set(c), m: [bl] };
+      for (const h of hit) { h.c.forEach(x => g.c.add(x)); g.m.push(...h.m); }
+      groups = groups.filter(x => !hit.includes(x)); groups.push(g);
+    }
+    for (const g of groups) if (g.m.length > 1) g.m.sort().forEach((bl, k) => partsOf.set(bls.get(bl).i, [k + 1, g.m.length]));
+  }
+  const helv = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+
   // pass 2: fill D/O pages
   const cache = new Map(), out = [];
   for (let n = 1; n <= pages.length; n++) {
@@ -493,6 +515,11 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
       page.drawImage(im.ref, { x: X, y: H - y - im.h, width: im.w, height: im.h });
     }
     if (boxBody) boxNote += await contactBox(doc, page, pg.lines, boxBody, boxTop, boxLimit);
+    if (partsOf.has(n - 1)) {
+      const [k, m] = partsOf.get(n - 1), s = `${k}/${m} PARTS`, st = pg.lines.find(l => RE_STATUS.test(l.str));
+      page.drawText(s, { x: 405 - helv.widthOfTextAtSize(s, 12.5), y: st ? st.y + 18 : H - 581, size: 12.5, font: helv, color: PDFLib.rgb(0, 0, 0) });
+      boxNote += ` · ${s}`;
+    }
     const missing = kind !== "ISO TANK+DG" && !noDem && !dem;
     out.push({ page: n, src: n, bl, master, kind, rec, dem, missing, cfs, noDem, status, inSheet: key0 !== null, reefer,
                recMissing: reefer && !rec,

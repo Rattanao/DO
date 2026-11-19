@@ -181,6 +181,45 @@ ALL_BLS = {p["bl"] for p in info if p["kind"] == "do"}
 def is_split(bl):
     return bl[-1].isalpha() or any(b != bl and b[:-1] == bl and b[-1].isalpha() for b in ALL_BLS)
 
+
+# ---------- "n/N PARTS" (user, 2026-11-19, example DO_EXP.pdf) ----------
+# CY D/Os (status .../CY) that share a container no. are parts of one container: each gets "n/N PARTS"
+# in black above the status line, numbered in B/L order (master, A, B, ...).
+def part_groups():
+    bls = {}
+    for i, q in enumerate(info):
+        st = RE_STATUS.search(q["text"])
+        if q["kind"] != "do" or not st or st.group(2) != "CY" or q["bl"] in bls: continue
+        c = set(RE_CNTR.findall(q["text"]))
+        j = i + 1
+        while j < len(info) and info[j]["kind"] == "rider":
+            c |= set(RE_CNTR.findall(info[j]["text"])); j += 1
+        bls[q["bl"]] = (i, c)
+    groups = []
+    for bl, (i, c) in bls.items():
+        hit = [g for g in groups if g[0] & c]
+        g = (set(c), [bl])
+        for h in hit:
+            g[0].update(h[0]); g[1].extend(h[1]); groups.remove(h)
+        groups.append(g)
+    out = {}
+    for _, members in groups:
+        if len(members) > 1:
+            for k, bl in enumerate(sorted(members), 1):
+                out[bls[bl][0]] = (k, len(members))
+    return out
+PARTS = part_groups()
+
+def parts_mark(page, lines, idx):
+    if idx not in PARTS: return ""
+    k, n = PARTS[idx]
+    s = f"{k}/{n} PARTS"
+    st = next((l for l in lines if RE_STATUS.search(l["s"])), None)
+    base = (st["y0"] - 8) if st else 581
+    w = pymupdf.get_text_length(s, fontname="helv", fontsize=12.5)
+    page.insert_text((405 - w, base), s, fontname="helv", fontsize=12.5, color=(0, 0, 0))
+    return f" | {s}"
+
 # ---------- fill the D/O pages ----------
 report, pages = [], []          # pages: (attached, cfs, master B/L) per page, for the print x2 file
 for page in doc:
@@ -242,6 +281,7 @@ for page in doc:
         filled = [(y, h) for y, h in parts if h]
         y0 = (filled[-1][0] + 16.8 * filled[-1][1].count("<p>") + 3) if filled else top
         box += contact_box(page, p["lines"], body, y0, limit)
+    box += parts_mark(page, p["lines"], page.number)
     for y, html in parts:
         if html:
             page.insert_htmlbox(pymupdf.Rect(45, y, 300, y + 45), html, css=CSS, archive=arch, scale_low=1)
