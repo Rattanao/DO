@@ -60,7 +60,7 @@ SPECIAL = "<p>SPECIAL CONTAINER</p><p>.......DG..........OP..........FR</p>"
 CONTACTS = {
     ("BKK", "AGENT"): ["LCL ขนส่งหน้าตู้แรงงานเรือ (BKK)", "ติดต่อเจ้าหน้าที่ประจำท่าเรือ",
                        "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ",
-                       "ติดต่อคุณตั้ม 090-4591899, คุณกระถิน 084-3179294", "คุณเอก 088-9164711",
+                       "ติดต่อคุณตั้ม 090-4591899,", "คุณกระถิน 084-3179294", "คุณเอก 088-9164711",
                        "", "หมายเหตุ : แจ้งก่อน 12.00 น."],
     ("BKK", "CNEE"): ["LCL ขนส่งหน้าตู้แรงงานลูกค้า (BKK)", "หลังจากเปิดตู้นำสินค้าออกเรียบร้อยแล้ว",
                       "กรุณานำสำเนาใบ WHARF ติดต่อ", "คุณเอก 088-9164711", "เพื่อหยุดค่าภาระ DEMMURAGE"],
@@ -72,10 +72,12 @@ CONTACTS = {
     ("UCTC", "AGENT"): ["LCL ขนส่งหน้าตู้แรงงานเรือ (UCTC)", "ติดต่อเจ้าหน้าที่ประจำท่าเรือ",
                         "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
 }
-BLUE = (0.12, 0.25, 0.78)
-arch.add((open("C:/Windows/Fonts/tahoma.ttf", "rb").read(), "tahoma.ttf"))
-CSS_BOX = ("@font-face{font-family:tah;src:url(tahoma.ttf);} "
-           "p{font-family:tah;font-size:8.6pt;margin:0;line-height:1.3;text-align:center;color:#1f40c7;} u{text-decoration:underline;}")
+BLUE = (0.04, 0.16, 0.66)
+# bigger and bold so it prints clearly (user, 2026-11-19): Tahoma Bold 10pt, box 256 pt wide (x 170-426)
+BOX_X0, BOX_X1, BOX_LH = 170, 426, 13.6
+arch.add((open("C:/Windows/Fonts/tahomabd.ttf", "rb").read(), "tahomabd.ttf"))
+CSS_BOX = ("@font-face{font-family:tah;src:url(tahomabd.ttf);font-weight:bold;} "
+           "p{font-family:tah;font-weight:bold;font-size:10pt;margin:0;line-height:1.36;text-align:center;color:#0a2aa8;} u{text-decoration:underline;}")
 RE_LCL = re.compile(r"LCL\s*\(\s*(AGENT|CNEE)\s*\)")
 
 def value_under(lines, label):
@@ -103,10 +105,10 @@ def contact_box(page, lines, text):
         return f"  ** ไม่มีข้อความติดต่อสำหรับ LCL({who}) ท่า {val or '?'} **"
     st = next((l for l in lines if RE_LCL.search(l["s"])), None)
     bottom = (st["y0"] - 5) if st else 595
-    h = 9 + 11.2 * len(body)
-    r = pymupdf.Rect(213, bottom - h, 427, bottom)
-    page.draw_rect(r, color=BLUE, width=1.1)
-    page.insert_htmlbox(r + (3, 4, -3, -2), "".join(f"<p>{t or '&nbsp;'}</p>" for t in body), css=CSS_BOX, archive=arch, scale_low=0.6)
+    h = 10 + BOX_LH * len(body)
+    r = pymupdf.Rect(BOX_X0, bottom - h, BOX_X1, bottom)
+    page.draw_rect(r, color=BLUE, width=1.5)
+    page.insert_htmlbox(r + (3, 4, -3, -2), "".join(f"<p>{t or '&nbsp;'}</p>" for t in body), css=CSS_BOX, archive=arch, scale_low=0.7)
     hit = [l["s"] for l in lines if r.x0 - 5 < l["x0"] < r.x1 and l["y1"] > r.y0 + 1 and l["y0"] < r.y1 - 1
            and not RE_LCL.search(l["s"])]
     return f" | ติดต่อ LCL({who}) {port}" + (f"  ** ทับข้อความ: {hit[0][:30]} **" if hit else "")
