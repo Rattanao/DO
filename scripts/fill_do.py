@@ -48,7 +48,9 @@ if XLS:
 else:
     print("!! ไม่พบ CHECK DEM*.xlsx — เติมได้เฉพาะ SPECIAL CONTAINER หน้าไหนไม่มีวันที่จะแจ้งไว้\n")
 
-arch = pymupdf.Archive(); arch.add((bold_font(), "angsab.ttf"))
+ANG = bold_font()
+ANG_FONT = pymupdf.Font(fontbuffer=ANG)
+arch = pymupdf.Archive(); arch.add((ANG, "angsab.ttf"))
 CSS = ("@font-face{font-family:ang;src:url(angsab.ttf);} "
        "p{font-family:ang;font-size:16pt;margin:0;line-height:1.05;} u{text-decoration:underline;}")
 SPECIAL = "<p>SPECIAL CONTAINER</p><p>.......DG..........OP..........FR</p>"
@@ -216,8 +218,10 @@ def parts_mark(page, lines, idx):
     s = f"{k}/{n} PARTS"
     st = next((l for l in lines if RE_STATUS.search(l["s"])), None)
     base = (st["y0"] - 6) if st else 583
-    w = pymupdf.get_text_length(s, fontname="helv", fontsize=11)
-    page.insert_text((494 - w, base), s, fontname="helv", fontsize=11, color=(0, 0, 0))   # gross-weight column, left of the measurement line
+    # same letters as the DEM note (Angsana New Bold 16pt, user 2026-11-19), right edge at the measurement line
+    page.insert_font(fontname="angb", fontbuffer=ANG)
+    w = ANG_FONT.text_length(s, fontsize=16)
+    page.insert_text((494 - w, base), s, fontname="angb", fontsize=16, color=(0, 0, 0))
     return f" | {s}"
 
 # ---------- fill the D/O pages ----------

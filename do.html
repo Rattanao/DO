@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19f</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19g</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -456,7 +456,6 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     }
     for (const g of groups) if (g.m.length > 1) g.m.sort().forEach((bl, k) => partsOf.set(bls.get(bl).i, [k + 1, g.m.length]));
   }
-  const helv = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
 
   // pass 2: fill D/O pages
   const cache = new Map(), out = [];
@@ -517,7 +516,9 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     if (boxBody) boxNote += await contactBox(doc, page, pg.lines, boxBody, boxTop, boxLimit);
     if (partsOf.has(n - 1)) {
       const [k, m] = partsOf.get(n - 1), s = `${k}/${m} PARTS`, st = pg.lines.find(l => RE_STATUS.test(l.str));
-      page.drawText(s, { x: 494 - helv.widthOfTextAtSize(s, 11), y: st ? st.y + 16 : H - 583, size: 11, font: helv, color: PDFLib.rgb(0, 0, 0) });
+      // same letters as the DEM note (Angsana New Bold, the font-size box), right edge at the measurement line
+      const im = noteImage([[[s, false]]], size, fam), ref = await doc.embedPng(im.png), base = st ? st.y + 16 : H - 583;
+      page.drawImage(ref, { x: 496 - im.w, y: base - (im.h - .9 * size), width: im.w, height: im.h });
       boxNote += ` · ${s}`;
     }
     const missing = kind !== "ISO TANK+DG" && !noDem && !dem;
