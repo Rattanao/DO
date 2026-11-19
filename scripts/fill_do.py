@@ -66,6 +66,9 @@ CONTACTS = {
                       "กรุณานำสำเนาใบ WHARF ติดต่อ", "คุณเอก 088-9164711", "เพื่อหยุดค่าภาระ DEMMURAGE"],
     ("LCB", "AGENT"): ["LCL", "<u>ขนส่งหน้าตู้แรงงานเรือ (LCB)</u>", "ติดต่อเทอร์มินอล",
                        "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
+    # Place of delivery LAT KRABANG (user, 2026-11-19): the LCB text with (LKR)
+    ("LKR", "AGENT"): ["LCL", "<u>ขนส่งหน้าตู้แรงงานเรือ (LKR)</u>", "ติดต่อเทอร์มินอล",
+                       "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
     ("UCTC", "AGENT"): ["LCL ขนส่งหน้าตู้แรงงานเรือ (UCTC)", "ติดต่อเจ้าหน้าที่ประจำท่าเรือ",
                         "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
 }
@@ -75,11 +78,16 @@ CSS_BOX = ("@font-face{font-family:tah;src:url(tahoma.ttf);} "
            "p{font-family:tah;font-size:8.6pt;margin:0;line-height:1.3;text-align:center;color:#1f40c7;} u{text-decoration:underline;}")
 RE_LCL = re.compile(r"LCL\s*\(\s*(AGENT|CNEE)\s*\)")
 
+def value_under(lines, label):
+    lab = next((l for l in lines if re.search(label, l["s"], re.I)), None)
+    if not lab: return ""
+    return next((l["s"] for l in sorted(lines, key=lambda l: l["y0"])
+                 if l["y0"] > lab["y0"] + 2 and l["y0"] < lab["y1"] + 22 and lab["x0"] - 20 < l["x0"] < lab["x0"] + 120), "")
+
 def port_of_discharge(lines):
-    lab = next((l for l in lines if re.search(r"Port\s*of\s*discharge", l["s"], re.I)), None)
-    if not lab: return "", ""
-    val = next((l["s"] for l in sorted(lines, key=lambda l: l["y0"])
-                if l["y0"] > lab["y0"] + 2 and l["y0"] < lab["y1"] + 22 and l["x0"] < lab["x0"] + 120), "")
+    dlv = value_under(lines, r"Place\s*of\s*delivery")
+    if re.search(r"LAT\s*KRABANG", dlv): return "LKR", dlv      # Place of delivery LAT KRABANG wins
+    val = value_under(lines, r"Port\s*of\s*discharge")
     port = ("UCTC" if re.search(r"UTCT|UCTC|UNITHAI", val) else "LCB" if re.search(r"LAEM", val)
             else "BKK" if re.search(r"BANGKOK", val) else "")
     return port, val

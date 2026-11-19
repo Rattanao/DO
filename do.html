@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19a</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-19b</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -246,14 +246,21 @@ const CONTACTS = {
   "BKK|CNEE": ["LCL ขนส่งหน้าตู้แรงงานลูกค้า (BKK)", "หลังจากเปิดตู้นำสินค้าออกเรียบร้อยแล้ว", "กรุณานำสำเนาใบ WHARF ติดต่อ",
                "คุณเอก 088-9164711", "เพื่อหยุดค่าภาระ DEMMURAGE"],
   "LCB|AGENT": ["LCL", "_ขนส่งหน้าตู้แรงงานเรือ (LCB)", "ติดต่อเทอร์มินอล", "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
+  // Place of delivery LAT KRABANG (user, 2026-11-19): the LCB text with (LKR)
+  "LKR|AGENT": ["LCL", "_ขนส่งหน้าตู้แรงงานเรือ (LKR)", "ติดต่อเทอร์มินอล", "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
   "UCTC|AGENT": ["LCL ขนส่งหน้าตู้แรงงานเรือ (UCTC)", "ติดต่อเจ้าหน้าที่ประจำท่าเรือ", "ล่วงหน้าก่อนเปิดตู้ 1 วัน เพื่อเตรียมเครื่องมือ", "หมายเหตุ : แจ้งก่อน 12.00 น."],
 };
 const RE_LCL = /LCL\s*\(\s*(AGENT|CNEE)\s*\)/;
+function valueUnder(lines, re) {
+  const lab = lines.find(l => re.test(l.str));
+  if (!lab) return "";
+  const v = lines.filter(l => l.y < lab.y - 1 && l.y > lab.y - 24 && l.x0 > lab.x0 - 20 && l.x0 < lab.x0 + 120).sort((a, b) => b.y - a.y)[0];
+  return v ? v.str : "";
+}
 function portOfDischarge(lines) {
-  const lab = lines.find(l => /Port\s*of\s*discharge/i.test(l.str));
-  if (!lab) return { port: "", val: "" };
-  const v = lines.filter(l => l.y < lab.y - 1 && l.y > lab.y - 24 && l.x0 < lab.x0 + 120).sort((a, b) => b.y - a.y)[0];
-  const val = v ? v.str : "";
+  const dlv = valueUnder(lines, /Place\s*of\s*delivery/i);
+  if (/LAT\s*KRABANG/.test(dlv)) return { port: "LKR", val: dlv };     // Place of delivery LAT KRABANG wins
+  const val = valueUnder(lines, /Port\s*of\s*discharge/i);
   const port = /UTCT|UCTC|UNITHAI/.test(val) ? "UCTC" : /LAEM/.test(val) ? "LCB" : /BANGKOK/.test(val) ? "BKK" : "";
   return { port, val };
 }

@@ -68,7 +68,7 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
 14. **LCL contact box** (user's stamps from สถานทีติดต่อ.pdf, example DO-exp.pdf, 2026-11-19): a D/O whose status
     is `LCL(AGENT)` (แรงงานเรือ) or `LCL(CNEE)` (แรงงานลูกค้า) gets a blue box (Tahoma, centred, 214 pt wide) in the
     goods area just above the status line, chosen by the Port of discharge value: UTCT/UCTC/UNITHAI -> UCTC,
-    LAEM CHABANG -> LCB, BANGKOK -> BKK. Texts are in `CONTACTS` (fill_do.py and do.html, keep both the same):
+    LAEM CHABANG -> LCB, BANGKOK -> BKK; **Place of delivery LAT KRABANG wins** -> LKR (the LCB text with (LKR)). Texts are in `CONTACTS` (fill_do.py and do.html, keep both the same):
     BKK AGENT, BKK CNEE, LCB AGENT, UCTC AGENT. LCB / UCTC with LCL(CNEE) have no text yet -> reported
     `** ไม่มีข้อความติดต่อ… **`. A box that lies over goods text is reported (`** ทับข้อความ … **`).
     The DEM line is still filled on LCL D/Os.
