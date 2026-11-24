@@ -80,7 +80,7 @@ BOX_X0, BOX_X1, BOX_LH = 45, 300, 13.6   # under the DEM note, left of the signa
 arch.add((open("C:/Windows/Fonts/tahomabd.ttf", "rb").read(), "tahomabd.ttf"))
 CSS_BOX = ("@font-face{font-family:tah;src:url(tahomabd.ttf);font-weight:bold;} "
            "p{font-family:tah;font-weight:bold;font-size:10pt;margin:0;line-height:1.36;text-align:center;color:#0a2aa8;} u{text-decoration:underline;}")
-RE_LCL = re.compile(r"LCL\s*\(\s*(AGENT|CNEE)\s*\)")
+RE_LCL = re.compile(r"LCL\s*\(?\s*(AGENT|CNEE)\b\s*\)?")   # brackets optional: "LCL AGENT" too
 
 def value_under(lines, label):
     lab = next((l for l in lines if re.search(label, l["s"], re.I)), None)

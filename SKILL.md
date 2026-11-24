@@ -66,7 +66,7 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     Buttons: "บันทึกทับไฟล์เดิม" (Chrome/Edge, writes back to the chosen file) and "ดาวน์โหลดใบเปิดที่แก้แล้ว"
     (`<name>-แก้ไข.pdf`).
 14. **LCL contact box** (user's stamps from สถานทีติดต่อ.pdf, example DO-exp.pdf, 2026-11-19): a D/O whose status
-    is `LCL(AGENT)` (แรงงานเรือ) or `LCL(CNEE)` (แรงงานลูกค้า) gets a blue box (Tahoma Bold up to 10pt, centred) **under the DEM note** (user, 2026-11-19): the notes move up to just
+    is `LCL(AGENT)` (แรงงานเรือ) or `LCL(CNEE)` (แรงงานลูกค้า), brackets optional (`LCL AGENT`), gets a blue box (Tahoma Bold up to 10pt, centred) **under the DEM note** (user, 2026-11-19): the notes move up to just
     under the disclaimer and the box (x 45-300, left of the signature line) fills the space down to the office address,
     its lines shrinking to fit. Chosen by the Port of discharge value: UTCT/UCTC/UNITHAI -> UCTC,
     LAEM CHABANG -> LCB, BANGKOK -> BKK; **Place of delivery LAT KRABANG wins** -> LKR (the LCB text with (LKR)). Texts are in `CONTACTS` (fill_do.py and do.html, keep both the same):
