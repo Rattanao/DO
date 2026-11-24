@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-24a</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-24b</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -532,8 +532,30 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
   const order = [], used = new Set();
   let dropped = 0;
   const put = i => { if (!used.has(i)) { used.add(i); order.push(i); } };
-  pages.forEach((pg, i) => {
-    if (pg.type !== "do" || used.has(i)) return;
+  // D/Os with status CY or LCL that share a container no. go next to each other, in B/L order (user, 2026-11-24)
+  const share = new Map();
+  {
+    const bls = new Map();
+    pages.forEach((q, i) => {
+      if (q.type !== "do" || bls.has(q.bl)) return;
+      const st = q.text.match(RE_STATUS);
+      if (!(st ? st[2] === "CY" : /\bLCL\b/.test(q.text))) return;
+      const c = new Set(q.text.match(RE_CNTR) || []);
+      for (let j = i + 1; j < pages.length && pages[j].type === "rider"; j++) (pages[j].text.match(RE_CNTR) || []).forEach(x => c.add(x));
+      bls.set(q.bl, { i, c });
+    });
+    let groups = [];
+    for (const [bl, { c }] of bls) {
+      const hit = groups.filter(g => [...c].some(x => g.c.has(x)));
+      const g = { c: new Set(c), m: [bl] };
+      for (const h of hit) { h.c.forEach(x => g.c.add(x)); g.m.push(...h.m); }
+      groups = groups.filter(x => !hit.includes(x)); groups.push(g);
+    }
+    for (const g of groups) if (g.m.length > 1) { const idx = g.m.sort().map(b => bls.get(b).i); idx.forEach(k => share.set(k, idx)); }
+  }
+  const putSet = i => {
+    const pg = pages[i];
+    if (used.has(i)) return;
     put(i);
     for (let j = i + 1; j < pages.length && pages[j].type === "rider"; j++) put(j);
     // ATTACHED sheets right after the D/O, one copy of each (identical pages dropped), in the user's example order:
@@ -547,7 +569,8 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
         seen.add(key); put(j);
       });
     pages.forEach((q, j) => { if ((q.type === "open1" || q.type === "open2") && q.bl === pg.bl) put(j); });
-  });
+  };
+  pages.forEach((pg, i) => { if (pg.type === "do" && !used.has(i)) (share.get(i) || [i]).forEach(putSet); });
   pages.forEach((_, i) => put(i));
   const merged = await PDFLib.PDFDocument.create();
   for (const p of await merged.copyPages(doc, order)) merged.addPage(p);

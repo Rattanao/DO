@@ -295,8 +295,37 @@ for page in doc:
 order, used, dropped = [], set(), []
 def put(i):
     if i not in used: used.add(i); order.append(i)
-for i, p in enumerate(info):
-    if p["kind"] != "do" or i in used: continue
+# D/Os with status CY or LCL that share a container no. are put next to each other, in B/L order
+# (user, 2026-11-24: HASLC01261022218 + HASLC01261106386, both HLHU8422420), so they print together.
+def share_groups():
+    bls = {}
+    for i, q in enumerate(info):
+        if q["kind"] != "do" or q["bl"] in bls: continue
+        st = RE_STATUS.search(q["text"])
+        if not (st.group(2) == "CY" if st else re.search(r"\bLCL\b", q["text"])): continue
+        c = set(RE_CNTR.findall(q["text"]))
+        j = i + 1
+        while j < len(info) and info[j]["kind"] == "rider":
+            c |= set(RE_CNTR.findall(info[j]["text"])); j += 1
+        bls[q["bl"]] = (i, c)
+    groups = []
+    for bl, (i, c) in bls.items():
+        hit = [g for g in groups if g[0] & c]
+        g = (set(c), [bl])
+        for h in hit:
+            g[0].update(h[0]); g[1].extend(h[1]); groups.remove(h)
+        groups.append(g)
+    out = {}
+    for _, members in groups:
+        if len(members) > 1:
+            idx = [bls[b][0] for b in sorted(members)]
+            for k in idx: out[k] = idx
+    return out
+SHARE = share_groups()
+moved = []
+def put_set(i):
+    p = info[i]
+    if i in used: return
     put(i)
     j = i + 1
     while j < len(info) and info[j]["kind"] == "rider": put(j); j += 1
@@ -314,6 +343,12 @@ for i, p in enumerate(info):
         seen.add(key); put(k)
     for k, q in enumerate(info):
         if q["kind"] in ("open1", "open2") and q["bl"] == p["bl"]: put(k)
+for i, p in enumerate(info):
+    if p["kind"] != "do" or i in used: continue
+    g = SHARE.get(i)
+    if g and any(info[k]["kind"] == "do" and k not in g for k in range(min(g), max(g))):   # report only sets that were apart
+        moved.append([info[k]["bl"] for k in g])
+    for k in SHARE.get(i, [i]): put_set(k)
 for i in range(len(info)): put(i)
 doc.select(order)
 pages = [pages[i] for i in order]
@@ -451,6 +486,8 @@ for i in print_order(pages):
 prn.save(OUT_PRINT, garbage=4, deflate=True)
 for n, r in enumerate(report, 1): print(n, *r[1:], sep=" | ")
 print(f"\nไฟล์ปริ้น x2: {os.path.basename(OUT_PRINT)} ({len(prn)} หน้า)")
+for g in moved:
+    print("ตู้เดียวกัน เรียงต่อกัน: " + ", ".join(g))
 if dropped:
     print(f"ตัด ATTACHED ที่ซ้ำกันออก {len(dropped)} หน้า (เก็บไว้หน้าละ 1)")
 

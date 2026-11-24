@@ -46,6 +46,9 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     user's example order (C:\EDI\DO_DEM.pdf, 2026-11-13): the sheet with the B/L no. (UTCT form, ends "FCL") ->
     the sheet without a B/L no. (starts "UTCT") -> the DEPOT sheet (บีซี2 (BC2 DEPOT)). A sheet listing several
     B/Ls (master + houses) goes after the first B/L it names.
+    **D/Os that share a container no.** (status CY `.../CY` or LCL, D/O + its rider pages) are put next to each other in
+    B/L order with their ATTACHED / ใบเปิดตู้ pages, so they print together (user, 2026-11-24: HASLC01261022218 +
+    HASLC01261106386, both HLHU8422420, were 52 pages apart). Sets that were apart are reported `ตู้เดียวกัน เรียงต่อกัน: …`.
 12. **ใบเปิดตู้ / คำร้อง check** against the D/O, every mismatch flagged. Only B/Ls that need fixing are listed
     (web table and script output); B/Ls that match on every field are only counted.
     - ชื่อเรือ: D/O "DONGJIN CONFIDENT 0153S" = form "DONGJIN CONFIDENT V.0153S" ("V." ignored)
