@@ -92,7 +92,7 @@
       <div class="btns"><button id="run" disabled>Calculate</button><button id="clearDem" class="ghost" disabled>Clear files</button></div>
     </div>
     <p class="rules">
-      <b>TOTAL</b> = first number + first number after Add (<code>7/5 Add 7/9</code> = 14) ·
+      <b>TOTAL</b> = first number + first number after Add (<code>7/5 Add 7/9</code> = 14); with <code>REQ</code> only the first number counts (<code>REQ 3/3 Add 7/4</code> = 3) ·
       <b>DEM.</b> = ATA + TOTAL ·
       <b>REC.</b> = ATA + 3 days, only on rows with <code>TOS</code> or a reefer TPSZ<br>
       The result goes to step ② DO by itself once calculated.<br>
@@ -130,6 +130,8 @@ const hidden = new Set();
 
 // ---------- rules ----------
 function freeDays(text) {
+  // REQ: only the first number counts ("REQ 3/3 Add 7/4" -> 3); the rest is never added
+  if (/\bREQ\b/i.test(String(text || ""))) { const m = String(text).match(/\d+/); return m ? parseInt(m[0], 10) : null; }
   const parts = String(text || "").split(/\badd\b/i).slice(0, 2);
   let total = 0, found = false;
   for (const p of parts) {
