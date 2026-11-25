@@ -87,6 +87,11 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     (script: real redaction; web: covered white) and reported `ตัด … (ซ้ำกับ No of pkgs)`. A count inside a longer line
     (`LAMINATED WITH PVC BACKING (230 ROLLS)`) is left alone.
 
+17. **CFS D/O must have a Measurement** (user, 2026-11-25): a D/O with status `CY/CFS` or `CFS/CFS` whose Measurement is
+    0 (`0.0000CBM`) or missing is **not printed**: it and its rider / ATTACHED / ใบเปิดตู้ pages are left out of
+    DO-DEM.pdf and the print x2 file until the D/O is fixed and run again. Script: `** <B/L> STATUS CFS แต่ Measurement = … **`;
+    web: red row, red "Measurement 0" box and message, Print x2 / Download leave it out.
+
 Format: Angsana New Bold 16pt (user, 2026-11-19; about the size of the "HEUNG A LINE (THAILAND) CO.,LTD."
 line on the right), bottom-left of the page, dates as `09-OCT-2026`, **underline on the date
 only** (the DG line is not underlined). Pages that already carry a typed annotation are skipped.

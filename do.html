@@ -65,6 +65,7 @@
   tbody tr { cursor: pointer; }
   tbody tr:nth-child(even) td { background: var(--stripe); }
   tbody tr.sel td { background: var(--navy-soft) !important; }
+  tbody tr.blocked td { background: #ffe0e0; color: var(--red); font-weight: 700; }
   td.l { text-align: left; }
   td.b { font-weight: 700; }
   td.kind { font-weight: 700; }
@@ -171,7 +172,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-25a</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-25b</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -495,6 +496,9 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     const st = text.match(RE_STATUS), cfs = !!st && st[2] === "CFS";
     const status = st ? st[0].replace(/\s/g, "") : "";
     const noDem = cfs && isSplit(bl);
+    // CFS D/O (CY/CFS, CFS/CFS) must have a Measurement: 0 (or none) -> red, not printed until the D/O is fixed (user, 2026-11-25)
+    const cbmM = text.match(/(\d[\d,]*(?:\.\d+)?)\s*CBM/);
+    const noCbm = cfs && (!cbmM || parseFloat(cbmM[1].replace(/,/g, "")) === 0) ? (cbmM ? cbmM[0] : "none") : "";
     if ((await pg.p.getAnnotations()).some(a => a.subtype === "FreeText")) {
       out.push({ page: n, src: n, bl, master, cfs, kind: "SKIPPED", note: "has a typed note already" }); continue;
     }
@@ -541,8 +545,8 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     }
     const missing = kind !== "ISO TANK+DG" && !noDem && !dem;
     out.push({ page: n, src: n, bl, master, kind, rec, dem, missing, cfs, noDem, status, inSheet: key0 !== null, reefer,
-               recMissing: reefer && !rec,
-               note: (cfs ? (noDem ? "CFS split · " : "single CFS, filled like CY · ") : "") +
+               recMissing: reefer && !rec, noCbm,
+               note: (noCbm ? `⛔ CFS with Measurement ${noCbm} — NOT PRINTED until the D/O is fixed · ` : "") + (cfs ? (noDem ? "CFS split · " : "single CFS, filled like CY · ") : "") +
                      parts.filter(p => p[1]).map(p => p[1].map(l => l.map(s => s[0]).join("").trim()).join(" ")).join(" / ") + boxNote });
   }
 
@@ -702,13 +706,14 @@ function suggest(key, doVal, formVal) {
 // ---------- render ----------
 function render() {
   const { rows, ata, name, font } = report;
-  const bad = rows.filter(x => x.missing || x.recMissing).length;
+  const bad = rows.filter(x => x.missing || x.recMissing).length, noCbm = rows.filter(x => x.noCbm);
   $("info").innerHTML =
     `<div class="k">Source</div><div>${escapeHtml(name)}</div>` +
     `<div class="k">ATA</div><div class="ata">${ata ? dmy(ata) : "-"}</div>` +
     `<div class="k">Pages</div><div>${rows.length}</div>` +
     `<div class="k">Font</div><div>${escapeHtml(font)}</div>` +
-    (bad ? `<div class="k" style="color:var(--red)">No date yet</div><div style="color:var(--red);font-weight:700">${bad} page(s) (fill the red cells)</div>` : "");
+    (bad ? `<div class="k" style="color:var(--red)">No date yet</div><div style="color:var(--red);font-weight:700">${bad} page(s) (fill the red cells)</div>` : "") +
+    (noCbm.length ? `<div class="k" style="background:var(--red);color:#fff">Measurement 0</div><div style="color:var(--red);font-weight:700">⛔ ${noCbm.map(x => escapeHtml(x.bl)).join(", ")} — CFS D/O with Measurement ${escapeHtml(noCbm[0].noCbm)}: NOT PRINTED. Fix the D/O, then drop it in again.</div>` : "");
   const counts = {};
   rows.forEach(x => counts[x.kind] = (counts[x.kind] || 0) + 1);
   $("chips").innerHTML = Object.keys(KINDS).filter(k => counts[k]).map(k =>
@@ -721,7 +726,7 @@ function render() {
     : x.noDem ? `<td style="color:var(--muted)">${x.status} split — no DEM</td>`
     : `<td class="${x.missing ? "bad" : "b"}">${dateIn(x, "dem")}</td>`;
   $("tbody").innerHTML = rows.filter(x => !hidden.has(x.kind) && (!q || (x.bl + " " + x.note).toLowerCase().includes(q))).map(x =>
-    `<tr data-p="${x.page}"><td>${x.page}</td><td class="b">${escapeHtml(x.bl)}</td>` +
+    `<tr data-p="${x.page}" class="${x.noCbm ? "blocked" : ""}"><td>${x.page}</td><td class="b">${escapeHtml(x.bl)}</td>` +
     `<td class="kind" style="background:#${KINDS[x.kind]}">${x.kind}</td>${recCell(x)}${demCell(x)}` +
     `<td class="l">${escapeHtml(x.note)}</td></tr>`).join("");
   $("result").classList.remove("hidden");
@@ -757,6 +762,8 @@ async function run(keep) {
     if (keep !== true) { hidden.clear(); $("search").value = ""; }
     render(); renderChecks();
     const dupNote = report.dropped ? `${report.dropped} duplicate ATTACHED page(s) left out (one copy kept)` : "";
+    const cbmNote = "⛔ CFS D/O with Measurement 0 — not printed until the D/O is fixed (red rows)";
+    if (report.rows.some(r => r.noCbm) && !$("msg").textContent.includes(cbmNote)) $("msg").textContent = [cbmNote, $("msg").textContent].filter(Boolean).join(" · ");
     if (dupNote && !$("msg").textContent.includes(dupNote)) $("msg").textContent = [$("msg").textContent, dupNote].filter(Boolean).join(" · ");
     preview(Math.min(page, report.rows.length));   // not awaited: the button is usable again at once
   } catch (err) {
@@ -767,9 +774,13 @@ async function run(keep) {
 
 // x2 for printing. A B/L = its page plus any ATTACHED RIDER pages after it.
 // CY: each B/L twice in a row (1,1,2,2). CFS: each master B/L's set of house B/Ls twice as separate sets (A,B,C,A,B,C).
+// B/Ls of CFS D/Os with Measurement 0: left out of both files until the D/O is fixed
+const blockedBls = rows => new Set(rows.filter(r => r.noCbm).map(r => r.bl));
+const printable = rows => { const b = blockedBls(rows); return rows.map((r, i) => i).filter(i => !b.has(rows[i].bl)); };
 function printOrder(rows) {
-  const bls = [];
+  const bls = [], blk = blockedBls(rows);
   rows.forEach((r, i) => (r.rider || r.attach) && bls.length ? bls[bls.length - 1].idx.push(i) : bls.push({ cfs: r.cfs, master: r.master, idx: [i] }));
+  for (let k = bls.length - 1; k >= 0; k--) if (blk.has(rows[bls[k].idx[0]].bl)) bls.splice(k, 1);
   const order = [];
   for (let k = 0; k < bls.length;) {
     const { cfs, master, idx } = bls[k];
@@ -816,7 +827,13 @@ function save(bytes, name) {
 async function download() {
   $("download").disabled = true;
   try {
-    save(report.out, OUTPUT_NAME);
+    let x1 = report.out;
+    if (report.rows.some(r => r.noCbm)) {   // leave the blocked B/Ls out of DO-DEM.pdf too
+      const src = await PDFLib.PDFDocument.load(report.out), d1 = await PDFLib.PDFDocument.create();
+      for (const pg of await d1.copyPages(src, printable(report.rows))) d1.addPage(pg);
+      x1 = await d1.save();
+    }
+    save(x1, OUTPUT_NAME);
     const x2 = await buildX2();
     await new Promise(r => setTimeout(r, 600));   // a short gap so the browser takes the second download too
     save(x2, PRINT_NAME);
@@ -861,7 +878,7 @@ function renderChecks() {
                      : `<p class="allok">✓ Forms match the D/O on every field (${all.length} B/L)</p>`);
   $("applyFix").classList.toggle("hidden", !bad);
   // warning at the top too, and bring the table into view
-  $("msg").textContent = [fileWarn, autoNote, report && report.dropped ? `${report.dropped} duplicate ATTACHED page(s) left out (one copy kept)` : "", bad ? `⚠ Forms do not match the D/O in ${bad} field(s) — correct them in the form-check table below` : ""].filter(Boolean).join(" · ");
+  $("msg").textContent = [fileWarn, report && report.rows.some(r => r.noCbm) ? "⛔ CFS D/O with Measurement 0 — not printed until the D/O is fixed (red rows)" : "", autoNote, report && report.dropped ? `${report.dropped} duplicate ATTACHED page(s) left out (one copy kept)` : "", bad ? `⚠ Forms do not match the D/O in ${bad} field(s) — correct them in the form-check table below` : ""].filter(Boolean).join(" · ");
   if (bad) $("checkCard").scrollIntoView({ behavior: "smooth", block: "start" });
   $("saveOver").classList.toggle("hidden", !fixedFiles.size || ![...fixedFiles.keys()].some(i => pdfFiles[i] && pdfFiles[i].handle));
   $("saveFixed").classList.toggle("hidden", !fixedFiles.size);

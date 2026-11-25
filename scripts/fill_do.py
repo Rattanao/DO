@@ -254,6 +254,7 @@ def dup_pkgs(page):
     return [(r, s) for r, s in L if r.y0 > pk[0].y0 and abs(r.x0 - kind.x0) < 4 and pkg_key(s) == want]
 
 # ---------- fill the D/O pages ----------
+BLOCK = {}   # B/L -> its Measurement, for CFS D/Os with Measurement 0 (left out of both output files)
 report, pages = [], []          # pages: (attached, cfs, master B/L) per page, for the print x2 file
 for page in doc:
     p = info[page.number]
@@ -293,6 +294,10 @@ for page in doc:
     reefer = bool(re.search(r"\b(20|40|45)R[FH]|\bTEMP\b", text))
     tank = bool(re.search(r"ISO\s*TANK|\b\d\dTK\b", text))
     no_dem = cfs and is_split(bl)
+    # CFS D/O (CY/CFS, CFS/CFS) must have a Measurement: 0 (or none) -> not printed until the D/O is fixed (user, 2026-11-25)
+    cbm = re.search(r"(\d[\d,]*(?:\.\d+)?)\s*CBM", text)
+    if cfs and (not cbm or float(cbm.group(1).replace(",", "")) == 0):
+        BLOCK[bl] = cbm.group(0) if cbm else "ไม่มีค่า"
     dem_p = "" if no_dem else f"<p>เริ่มเก็บค่า DEM. วันที่.&nbsp; <u>{dem_s}&nbsp;</u></p>" if dem_s else ""
     if tank and dg:
         kind, parts = "ISO TANK+DG", [(700, SPECIAL)]
@@ -385,6 +390,7 @@ for i, p in enumerate(info):
         moved.append([info[k]["bl"] for k in g])
     for k in SHARE.get(i, [i]): put_set(k)
 for i in range(len(info)): put(i)
+order = [i for i in order if info[i]["bl"] not in BLOCK]   # Measurement 0 CFS D/Os: not printed
 doc.select(order)
 pages = [pages[i] for i in order]
 report = [report[i] for i in order]
@@ -523,6 +529,8 @@ for n, r in enumerate(report, 1): print(n, *r[1:], sep=" | ")
 print(f"\nไฟล์ปริ้น x2: {os.path.basename(OUT_PRINT)} ({len(prn)} หน้า)")
 for g in moved:
     print("ตู้เดียวกัน เรียงต่อกัน: " + ", ".join(g))
+for b, v in BLOCK.items():
+    print(f"** {b} STATUS CFS แต่ Measurement = {v} -> ไม่ใส่ในไฟล์ปริ้น แก้ D/O ก่อนแล้วทำใหม่ **")
 if dropped:
     print(f"ตัด ATTACHED ที่ซ้ำกันออก {len(dropped)} หน้า (เก็บไว้หน้าละ 1)")
 
