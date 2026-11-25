@@ -81,6 +81,12 @@ its B/L No. Columns are found by heading (`REC.`, `DEM.`, `B/L No.`), ATA from t
     right edge x 494 (gross-weight column, left of the measurement line), just above the status line, numbered in B/L order (master, A, B, ...). Several shared
     containers give separate groups (e.g. 1/5 ... 5/5 and 1/8 ... 8/8). LCL / CFS D/Os are never numbered.
 
+16. **Package count repeated in the description** (user, 2026-11-25): when a whole line of the description of goods
+    says the same as No of pkgs (`15 METAL BOXES` / `(15 METAL BOXES)`: same number and kind; BOX = BOXES,
+    CTN = CARTON, PKG = PACKAGE, PLT = PALLET, PCS = PIECE; WOODEN CASE is not CASE), that line is removed from the D/O
+    (script: real redaction; web: covered white) and reported `ตัด … (ซ้ำกับ No of pkgs)`. A count inside a longer line
+    (`LAMINATED WITH PVC BACKING (230 ROLLS)`) is left alone.
+
 Format: Angsana New Bold 16pt (user, 2026-11-19; about the size of the "HEUNG A LINE (THAILAND) CO.,LTD."
 line on the right), bottom-left of the page, dates as `09-OCT-2026`, **underline on the date
 only** (the DG line is not underlined). Pages that already carry a typed annotation are skipped.

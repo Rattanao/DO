@@ -171,7 +171,7 @@
     <div class="preview hidden" id="preview"><p id="previewText"></p><canvas id="canvas"></canvas></div>
   </section>
 </main>
-<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-24b</footer>
+<footer><a href="guide.html">Guide / download program</a> · <a href="https://github.com/Rattanao/DO">github.com/Rattanao/DO</a> · version 2026-11-25a</footer>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -354,6 +354,21 @@ function readCovers(pdfDoc) {
 }
 const underCover = (i, idx, covers) => covers.some(c => idx < c.base && i.transform[4] >= c.x - 1 && i.transform[4] < c.x + c.w - 1 && Math.abs(i.transform[5] - c.y) < c.h * 0.6);
 
+// package count repeated in the description (user, 2026-11-25): "15 METAL BOXES" under No of pkgs and
+// "(15 METAL BOXES)" as a whole line of the description of goods -> that line is covered white (same as fill_do.py)
+const RE_PKG = /^\(?\s*(\d[\d,]*)\s+([A-Z][A-Z .]*?)\s*\)?\.?$/;
+const UNIT = { CTN: "CARTON", PKG: "PACKAGE", PLT: "PALLET", PC: "PIECE", PCE: "PIECE" };
+const unitKey = u => { const s = u.toUpperCase().replace(/[^A-Z]/g, "").replace(/(X|CH|SH|SS)ES$/, "$1").replace(/S$/, ""); return UNIT[s] || s; };
+const pkgKey = s => { const m = s.trim().match(RE_PKG); return m ? m[1].replace(/,/g, "") + "|" + unitKey(m[2]) : null; };
+function dupPkgs(lines) {
+  const lab = lines.find(l => /^No of containers/.test(l.str)), kind = lines.find(l => /^Kind of packages/.test(l.str));
+  if (!lab || !kind) return [];
+  const pk = lines.filter(l => lab.y - l.y > 4 && lab.y - l.y < 45 && l.x0 > lab.x0 - 10 && l.x1 < kind.x0 + 2 && pkgKey(l.str))
+                  .sort((a, b) => b.y - a.y)[0];
+  if (!pk) return [];
+  const want = pkgKey(pk.str);
+  return lines.filter(l => l.y < pk.y - 1 && Math.abs(l.x0 - kind.x0) < 4 && pkgKey(l.str) === want);
+}
 // ---------- page reading ----------
 const clean = s => s.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, " ");
 const norm = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -499,6 +514,8 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
     else if (dg) { kind = "DG"; parts = [[690, SPECIAL], [760, demLine]]; }
     else { kind = "GENERAL"; parts = [[728, demLine]]; }
     const page = doc.getPage(n - 1), H = page.getHeight();
+    const dups = dupPkgs(pg.lines);
+    for (const l of dups) page.drawRectangle({ x: l.x0 - 1, y: l.y - .3 * l.h, width: l.x1 - l.x0 + 2, height: 1.3 * l.h, color: PDFLib.rgb(1, 1, 1) });
     let { body: boxBody, note: boxNote } = contactPick(pg.lines, text), boxTop = 0, boxLimit = 0;
     if (boxBody) {   // LCL contact box goes under the DEM note: move the notes up to just under the disclaimer
       const fa = freeArea(pg.lines, H), dy = fa.top - parts[0][0];
@@ -514,6 +531,7 @@ async function fill(pdfs, xlsBytes, size, dates, ov) {
       page.drawImage(im.ref, { x: X, y: H - y - im.h, width: im.w, height: im.h });
     }
     if (boxBody) boxNote += await contactBox(doc, page, pg.lines, boxBody, boxTop, boxLimit);
+    for (const l of dups) boxNote += ` · removed ${l.str} (same as No of pkgs)`;
     if (partsOf.has(n - 1)) {
       const [k, m] = partsOf.get(n - 1), s = `${k}/${m} PARTS`, st = pg.lines.find(l => RE_STATUS.test(l.str));
       // same letters as the DEM note (Angsana New Bold, the font-size box), right edge at the measurement line

@@ -224,6 +224,35 @@ def parts_mark(page, lines, idx):
     page.insert_text((494 - w, base), s, fontname="angb", fontsize=16, color=(0, 0, 0))
     return f" | {s}"
 
+# ---------- package count repeated in the description (user, 2026-11-25) ----------
+# "15 METAL BOXES" under No of pkgs and "(15 METAL BOXES)" as a whole line of the description of goods:
+# that description line is removed from the D/O (same number and same kind of package; BOX = BOXES,
+# CTN = CARTON, PKG = PACKAGE ...; WOODEN CASE is not CASE). Text inside a longer line is left alone.
+RE_PKG = re.compile(r"^\(?\s*(\d[\d,]*)\s+([A-Z][A-Z .]*?)\s*\)?\.?$")
+UNIT = {"CTN": "CARTON", "PKG": "PACKAGE", "PLT": "PALLET", "PC": "PIECE", "PCE": "PIECE"}
+def unit_key(u):
+    s = re.sub(r"[^A-Z]", "", u.upper())
+    s = re.sub(r"(X|CH|SH|SS)ES$", r"\1", s)
+    s = re.sub(r"S$", "", s)
+    return UNIT.get(s, s)
+def pkg_key(s):
+    m = RE_PKG.match(s.strip())
+    return (m.group(1).replace(",", ""), unit_key(m.group(2))) if m else None
+def dup_pkgs(page):
+    lab = page.search_for("No of containers"); kind = page.search_for("Kind of packages")
+    if not lab or not kind: return []
+    lab, kind = lab[0], kind[0]
+    L = []
+    for b in page.get_text("dict")["blocks"]:
+        for l in b.get("lines", []):
+            s = re.sub(r"\s+", " ", CTRL.sub(" ", "".join(sp["text"] for sp in l["spans"]))).strip()
+            if s: L.append((pymupdf.Rect(l["bbox"]), s))
+    pk = next(((r, s) for r, s in sorted(L, key=lambda t: t[0].y0)
+               if lab.y1 < r.y0 < lab.y1 + 40 and lab.x0 - 10 < r.x0 and r.x1 < kind.x0 + 2 and pkg_key(s)), None)
+    if not pk: return []
+    want = pkg_key(pk[1])
+    return [(r, s) for r, s in L if r.y0 > pk[0].y0 and abs(r.x0 - kind.x0) < 4 and pkg_key(s) == want]
+
 # ---------- fill the D/O pages ----------
 report, pages = [], []          # pages: (attached, cfs, master B/L) per page, for the print x2 file
 for page in doc:
@@ -250,6 +279,12 @@ for page in doc:
         report.append([page.number, bl, "ATTACHED RIDER (ไม่เติม)" + unstamped]); continue
     if page.first_annot:
         report.append([page.number, bl, "มีข้อความอยู่แล้ว (ข้าม)"]); continue
+    dups = dup_pkgs(page)
+    for r, _ in dups:
+        page.add_redact_annot(r + (-0.5, 0.5, 0.5, -0.5), fill=(1, 1, 1))
+    if dups:
+        page.apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE)
+    cut = "".join(f" | ตัด {s} (ซ้ำกับ No of pkgs)" for _, s in dups)
     # house B/L (HASL...A, B, ...) not in CHECK DEM -> use its master B/L
     row = rows.get(bl) or (rows.get(bl[:-1]) if bl[-1].isalpha() else None)
     rec0, dem = row if row else (None, None)
@@ -289,7 +324,7 @@ for page in doc:
     for y, html in parts:
         if html:
             page.insert_htmlbox(pymupdf.Rect(45, y, 300, y + 45), html, css=CSS, archive=arch, scale_low=1)
-    report.append([page.number, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h) + box])
+    report.append([page.number, bl, kind + " | " + " / ".join(re.sub(r"<[^>]+>|&nbsp;", " ", h).strip() for _, h in parts if h) + box + cut])
 
 # ---------- merge order: per D/O B/L -> D/O (+ rider) -> ATTACHED -> ใบเปิดตู้ / คำร้อง ----------
 order, used, dropped = [], set(), []
